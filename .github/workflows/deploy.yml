@@ -3,7 +3,7 @@ name: Deploy to VPS
 on:
   push:
     branches:
-      - main  # Якщо твоя гілка в GitHub називається master, заміни на master
+      - main
 
 jobs:
   deploy:
@@ -17,18 +17,29 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
+            # Зупиняти скрипт, якщо хоч одна команда видасть помилку
+            set -e
+
+            # Підвантажуємо змінні оточення (особливо NVM для npm). 
+            # Якщо ти встановлював Node не через NVM, а глобально, ці 2 рядки можна прибрати, 
+            # але залишаємо 'source ~/.bashrc' як запасний варіант.
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            source ~/.bashrc || true
+
             # Заходимо в папку
             cd /noris/logistic-client-noris
             
-            # Підтягуємо код з гіта
-            echo "📥 Pulling changes..."
-            git pull origin main
+            # Примусово робимо код на сервері ідентичним до GitHub (скидаємо конфлікти)
+            echo "📥 Fetching and resetting changes..."
+            git fetch --all
+            git reset --hard origin/main
             
             # Встановлюємо залежності
             echo "📦 Installing npm packages..."
             npm install
             
-            # Запускаємо твій скрипт (prisma generate + build + pm2 restart)
+            # Запускаємо твій скрипт
             echo "🚀 Running deploy script..."
             npm run deploy
             
