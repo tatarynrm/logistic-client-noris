@@ -1,0 +1,24 @@
+// Enums and base types
+
+enum TenderStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+
+  @@map("tender_status")
+}
+
+enum MarginPayer {
+  CLIENT
+  OWNER
+
+  @@map("margin_payer")
+}
+
+enum RouteType {
+  LOADING
+  UNLOADING
+
+  @@map("route_type")
+}

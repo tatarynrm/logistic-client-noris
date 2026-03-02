@@ -1,0 +1,31 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main  # Змініть на вашу основну гілку (main або master)
+  workflow_dispatch:  # Дозволяє запускати вручну з GitHub UI
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          script: |
+            cd ~/logistic-app
+            git pull origin main
+            docker compose down
+            docker compose build --no-cache
+            docker compose up -d
+            docker compose exec -T app npx prisma migrate deploy
+            echo "✅ Deployment completed successfully!"

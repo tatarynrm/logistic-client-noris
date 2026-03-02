@@ -1,0 +1,17 @@
+model TenderRoute {
+  id          String    @id @default(cuid())
+  tenderId    String    @map("tender_id")
+  type        RouteType
+  sequence    Int
+  name        String
+  lat         Float
+  lng         Float
+  displayName String    @map("display_name")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  tender      Tender    @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+
+  @@unique([tenderId, sequence])
+  @@index([tenderId])
+  @@index([type])
+  @@map("tender_routes")
+}

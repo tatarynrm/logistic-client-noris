@@ -1,0 +1,10 @@
+// This file serves as the entry point for the schema folder structure
+// All models are defined in the schema/ subdirectory
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
