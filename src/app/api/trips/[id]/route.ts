@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { MarginPayer, TenderStatus, RouteType } from '@prisma/client';
-import type { TenderRoute } from '@/types/prisma';
+import { MarginPayer, TenderStatus, RouteType, type TenderRoute } from '@/types/prisma';
+import { transformTenderToTrip } from '@/lib/transformers';
 
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
   try {
@@ -33,8 +33,8 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         clientPhone: data.client_phone || null,
         clientPayment: parseFloat(data.client_payment),
         myMargin: parseFloat(data.my_margin),
-        marginPayer: data.margin_payer.toUpperCase() as MarginPayer,
-        status: data.status.toUpperCase() as TenderStatus,
+        marginPayer: data.margin_payer.toLowerCase() === 'client' ? MarginPayer.CLIENT : MarginPayer.OWNER,
+        status: data.status as TenderStatus,
         routes: {
           deleteMany: {},
           create: [
@@ -48,7 +48,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
             })),
             ...data.unload_points.map((point: any, index: number) => ({
               type: RouteType.UNLOADING,
-              sequence: index,
+              sequence: data.load_points.length + index,
               name: point.name,
               lat: point.lat,
               lng: point.lng,
@@ -64,27 +64,8 @@ export async function PUT(request: Request, { params }: { params: { id: string }
       }
     });
 
-    // Конвертуємо в старий формат
-    const trip = {
-      ...tender,
-      load_points: tender.routes
-        .filter((r: TenderRoute) => r.type === 'LOADING')
-        .map((r: TenderRoute) => ({
-          name: r.name,
-          lat: r.lat,
-          lng: r.lng,
-          displayName: r.displayName
-        })),
-      unload_points: tender.routes
-        .filter((r: TenderRoute) => r.type === 'UNLOADING')
-        .map((r: TenderRoute) => ({
-          name: r.name,
-          lat: r.lat,
-          lng: r.lng,
-          displayName: r.displayName
-        })),
-      routes: undefined
-    };
+    // Конвертуємо в формат фронтенду
+    const trip = transformTenderToTrip(tender);
 
     const io = (global as any).io;
     if (io) {

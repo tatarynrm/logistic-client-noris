@@ -21,7 +21,7 @@ function DashboardContent() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [tripToDelete, setTripToDelete] = useState<string | null>(null);
   
-  const [filter, setFilter] = useState<'all' | 'pending' | 'paid' | 'waiting'>(
+  const [filter, setFilter] = useState<'all' | 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'>(
     (searchParams.get('filter') as any) || 'all'
   );
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
@@ -125,7 +125,7 @@ function DashboardContent() {
     }
   };
 
-  const handleStatusChange = async (id: string, status: 'pending' | 'paid' | 'waiting') => {
+  const handleStatusChange = async (id: string, status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED') => {
     try {
       await fetch(`/api/trips/${id}/status`, {
         method: 'PATCH',
@@ -137,7 +137,7 @@ function DashboardContent() {
     }
   };
 
-  const handleFilterChange = (newFilter: 'all' | 'pending' | 'paid' | 'waiting') => {
+  const handleFilterChange = (newFilter: 'all' | 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED') => {
     setFilter(newFilter);
     setCurrentPage(1);
   };
@@ -189,9 +189,10 @@ function DashboardContent() {
 
   const stats = {
     total: trips.length,
-    pending: trips.filter(t => t.status === 'pending').length,
-    waiting: trips.filter(t => t.status === 'waiting').length,
-    paid: trips.filter(t => t.status === 'paid').length,
+    pending: trips.filter(t => t.status === 'PENDING').length,
+    inProgress: trips.filter(t => t.status === 'IN_PROGRESS').length,
+    completed: trips.filter(t => t.status === 'COMPLETED').length,
+    cancelled: trips.filter(t => t.status === 'CANCELLED').length,
     totalMargin: trips.reduce((sum, t) => sum + t.my_margin, 0),
   };
 
@@ -208,7 +209,7 @@ function DashboardContent() {
       <Navigation user={user} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
             <p className="text-xs text-gray-500 dark:text-gray-400 uppercase">Всього</p>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
@@ -217,17 +218,21 @@ function DashboardContent() {
             <p className="text-xs text-orange-700 dark:text-orange-400 uppercase">Очікую</p>
             <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{stats.pending}</p>
           </div>
-          <div className="bg-red-50 dark:bg-red-900/20 rounded-lg shadow p-4">
-            <p className="text-xs text-red-700 dark:text-red-400 uppercase">Чекаю оплату</p>
-            <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.waiting}</p>
+          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg shadow p-4">
+            <p className="text-xs text-blue-700 dark:text-blue-400 uppercase">В процесі</p>
+            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.inProgress}</p>
           </div>
           <div className="bg-green-50 dark:bg-green-900/20 rounded-lg shadow p-4">
-            <p className="text-xs text-green-700 dark:text-green-400 uppercase">Оплачено</p>
-            <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.paid}</p>
+            <p className="text-xs text-green-700 dark:text-green-400 uppercase">Завершено</p>
+            <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.completed}</p>
           </div>
-          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg shadow p-4">
-            <p className="text-xs text-blue-700 dark:text-blue-400 uppercase">Маржа</p>
-            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.totalMargin} грн</p>
+          <div className="bg-red-50 dark:bg-red-900/20 rounded-lg shadow p-4">
+            <p className="text-xs text-red-700 dark:text-red-400 uppercase">Скасовано</p>
+            <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.cancelled}</p>
+          </div>
+          <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg shadow p-4">
+            <p className="text-xs text-purple-700 dark:text-purple-400 uppercase">Маржа</p>
+            <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{stats.totalMargin} грн</p>
           </div>
         </div>
 
@@ -268,9 +273,9 @@ function DashboardContent() {
               Всі рейси
             </button>
             <button
-              onClick={() => handleFilterChange('pending')}
+              onClick={() => handleFilterChange('PENDING')}
               className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
-                filter === 'pending'
+                filter === 'PENDING'
                   ? 'bg-orange-600 text-white'
                   : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
@@ -278,24 +283,34 @@ function DashboardContent() {
               Очікую
             </button>
             <button
-              onClick={() => handleFilterChange('waiting')}
+              onClick={() => handleFilterChange('IN_PROGRESS')}
               className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
-                filter === 'waiting'
-                  ? 'bg-red-600 text-white'
+                filter === 'IN_PROGRESS'
+                  ? 'bg-blue-600 text-white'
                   : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
-              Чекаю оплату
+              В процесі
             </button>
             <button
-              onClick={() => handleFilterChange('paid')}
+              onClick={() => handleFilterChange('COMPLETED')}
               className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
-                filter === 'paid'
+                filter === 'COMPLETED'
                   ? 'bg-green-600 text-white'
                   : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
-              Оплачено
+              Завершено
+            </button>
+            <button
+              onClick={() => handleFilterChange('CANCELLED')}
+              className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
+                filter === 'CANCELLED'
+                  ? 'bg-red-600 text-white'
+                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              Скасовано
             </button>
           </div>
 

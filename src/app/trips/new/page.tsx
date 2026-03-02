@@ -32,7 +32,7 @@ export default function NewTripPage() {
     client_payment: '',
     my_margin: '',
     margin_payer: 'client',
-    status: 'pending',
+    status: 'PENDING',
   });
 
   useEffect(() => {
@@ -407,8 +407,8 @@ export default function NewTripPage() {
                 <input
                   type="radio"
                   name="status"
-                  value="pending"
-                  checked={formData.status === 'pending'}
+                  value="PENDING"
+                  checked={formData.status === 'PENDING'}
                   onChange={(e) => updateField('status', e.target.value)}
                   className="w-4 h-4 text-orange-600"
                 />
@@ -418,23 +418,34 @@ export default function NewTripPage() {
                 <input
                   type="radio"
                   name="status"
-                  value="waiting"
-                  checked={formData.status === 'waiting'}
+                  value="IN_PROGRESS"
+                  checked={formData.status === 'IN_PROGRESS'}
                   onChange={(e) => updateField('status', e.target.value)}
-                  className="w-4 h-4 text-red-600"
+                  className="w-4 h-4 text-blue-600"
                 />
-                <span className="text-gray-900 dark:text-white">Чекаю оплату</span>
+                <span className="text-gray-900 dark:text-white">В процесі</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="radio"
                   name="status"
-                  value="paid"
-                  checked={formData.status === 'paid'}
+                  value="COMPLETED"
+                  checked={formData.status === 'COMPLETED'}
                   onChange={(e) => updateField('status', e.target.value)}
                   className="w-4 h-4 text-green-600"
                 />
-                <span className="text-gray-900 dark:text-white">Оплачено</span>
+                <span className="text-gray-900 dark:text-white">Завершено</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="status"
+                  value="CANCELLED"
+                  checked={formData.status === 'CANCELLED'}
+                  onChange={(e) => updateField('status', e.target.value)}
+                  className="w-4 h-4 text-red-600"
+                />
+                <span className="text-gray-900 dark:text-white">Скасовано</span>
               </label>
             </div>
           </div>

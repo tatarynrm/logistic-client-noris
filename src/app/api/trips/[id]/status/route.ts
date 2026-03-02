@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { RouteType } from '@prisma/client';
-import type { TenderRoute } from '@/types/prisma';
+import { RouteType, type TenderRoute } from '@/types/prisma';
+import { transformTenderToTrip } from '@/lib/transformers';
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
   try {
@@ -29,27 +29,8 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       }
     });
 
-    // Конвертуємо в старий формат
-    const trip = {
-      ...tender,
-      load_points: tender.routes
-        .filter((r: TenderRoute) => r.type === RouteType.LOADING)
-        .map((r: TenderRoute) => ({
-          name: r.name,
-          lat: r.lat,
-          lng: r.lng,
-          displayName: r.displayName
-        })),
-      unload_points: tender.routes
-        .filter((r: TenderRoute) => r.type === RouteType.UNLOADING)
-        .map((r: TenderRoute) => ({
-          name: r.name,
-          lat: r.lat,
-          lng: r.lng,
-          displayName: r.displayName
-        })),
-      routes: undefined
-    };
+    // Конвертуємо в формат фронтенду
+    const trip = transformTenderToTrip(tender);
 
     const io = (global as any).io;
     if (io) {

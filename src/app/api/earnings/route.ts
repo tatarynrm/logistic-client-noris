@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
-import { RouteType } from '@prisma/client';
-import type { TenderWithRoutes, TenderRoute } from '@/types/prisma';
+import { RouteType, type TenderWithRoutes, type TenderRoute } from '@/types/prisma';
+import { transformTenderToTrip } from '@/lib/transformers';
 
 export async function GET(request: Request) {
   try {
@@ -35,30 +35,11 @@ export async function GET(request: Request) {
       orderBy: { loadDate: 'asc' },
     });
 
-    // Конвертуємо в старий формат
-    const trips = tenders.map((tender: TenderWithRoutes) => ({
-      ...tender,
-      load_points: tender.routes
-        .filter((r: TenderRoute) => r.type === RouteType.LOADING)
-        .map((r: TenderRoute) => ({
-          name: r.name,
-          lat: r.lat,
-          lng: r.lng,
-          displayName: r.displayName
-        })),
-      unload_points: tender.routes
-        .filter((r: TenderRoute) => r.type === RouteType.UNLOADING)
-        .map((r: TenderRoute) => ({
-          name: r.name,
-          lat: r.lat,
-          lng: r.lng,
-          displayName: r.displayName
-        })),
-      routes: undefined
-    }));
+    // Конвертуємо в формат фронтенду
+    const trips = tenders.map(transformTenderToTrip);
 
-    const totalMargin = trips.reduce((sum: number, trip: typeof trips[0]) => sum + trip.myMargin, 0);
-    const totalPayment = trips.reduce((sum: number, trip: typeof trips[0]) => sum + trip.clientPayment, 0);
+    const totalMargin = trips.reduce((sum: number, trip) => sum + trip.my_margin, 0);
+    const totalPayment = trips.reduce((sum: number, trip) => sum + trip.client_payment, 0);
 
     return NextResponse.json({
       trips,

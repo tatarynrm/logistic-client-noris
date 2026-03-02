@@ -9,30 +9,6 @@ datasource db {
   provider = "postgresql"
 }
 
-// Enums
-enum TenderStatus {
-  PENDING
-  IN_PROGRESS
-  COMPLETED
-  CANCELLED
-
-  @@map("tender_status")
-}
-
-enum MarginPayer {
-  CLIENT
-  OWNER
-
-  @@map("margin_payer")
-}
-
-enum RouteType {
-  LOADING
-  UNLOADING
-
-  @@map("route_type")
-}
-
 // Models
 model User {
   id        String   @id @default(cuid())
@@ -61,8 +37,8 @@ model Tender {
   clientPhone   String?       @map("client_phone")
   clientPayment Float         @map("client_payment")
   myMargin      Float         @map("my_margin")
-  marginPayer   MarginPayer   @default(CLIENT) @map("margin_payer")
-  status        TenderStatus  @default(PENDING)
+  marginPayer   String        @default("CLIENT") @map("margin_payer")
+  status        String        @default("PENDING")
   createdAt     DateTime      @default(now()) @map("created_at")
   updatedAt     DateTime      @updatedAt @map("updated_at")
   routes        TenderRoute[]
@@ -76,16 +52,16 @@ model Tender {
 }
 
 model TenderRoute {
-  id          String    @id @default(cuid())
-  tenderId    String    @map("tender_id")
-  type        RouteType
+  id          String   @id @default(cuid())
+  tenderId    String   @map("tender_id")
+  type        String
   sequence    Int
   name        String
   lat         Float
   lng         Float
-  displayName String    @map("display_name")
-  createdAt   DateTime  @default(now()) @map("created_at")
-  tender      Tender    @relation(fields: [tenderId], references: [id], onDelete: Cascade)
+  displayName String   @map("display_name")
+  createdAt   DateTime @default(now()) @map("created_at")
+  tender      Tender   @relation(fields: [tenderId], references: [id], onDelete: Cascade)
 
   @@unique([tenderId, sequence])
   @@index([tenderId])

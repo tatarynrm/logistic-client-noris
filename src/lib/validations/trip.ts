@@ -11,7 +11,7 @@ export const tripSchema = z.object({
   load_date: z.string().min(1, 'Оберіть дату завантаження'),
   unload_date: z.string().optional().nullable(),
   driver_name: z.string().min(2, "Ім'я водія має бути мінімум 2 символи"),
-  driver_phone: z.string().min(10, 'Невірний формат телефону'),
+  driver_phone: z.string().min(2, 'Невірний формат телефону'),
   vehicle_info: z.string().min(2, 'Вкажіть інформацію про транспорт'),
   owner_name: z.string().optional().nullable(),
   owner_phone: z.string().optional().nullable(),
@@ -25,10 +25,10 @@ export const tripSchema = z.object({
     z.string().min(1, 'Вкажіть вашу маржу'),
     z.number(),
   ]),
-  margin_payer: z.enum(['client', 'owner'], {
+  margin_payer: z.enum(['client', 'owner', 'CLIENT', 'OWNER'], {
     errorMap: () => ({ message: 'Оберіть хто платить маржу' }),
   }),
-  status: z.enum(['pending', 'in_progress', 'completed', 'cancelled']).default('pending'),
+  status: z.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).default('PENDING'),
   load_points: z.array(locationPointSchema).min(1, 'Додайте хоча б одну точку завантаження'),
   unload_points: z.array(locationPointSchema).min(1, 'Додайте хоча б одну точку вигрузки'),
 });

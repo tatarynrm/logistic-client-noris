@@ -27,8 +27,8 @@ export interface Trip {
   client_phone?: string;
   client_payment: number;
   my_margin: number;
-  margin_payer: 'client' | 'carrier';
-  status: 'pending' | 'paid' | 'waiting';
+  margin_payer: 'CLIENT' | 'OWNER';
+  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
   created_at: string;
   updated_at: string;
 }

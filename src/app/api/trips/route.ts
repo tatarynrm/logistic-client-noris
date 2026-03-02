@@ -3,8 +3,8 @@ import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { tripSchema } from '@/lib/validations/trip';
 import { z } from 'zod';
-import { MarginPayer, TenderStatus, RouteType } from '@prisma/client';
-import type { TenderWithRoutes, TenderRoute } from '@/types/prisma';
+import { MarginPayer, TenderStatus, RouteType, type TenderWithRoutes, type TenderRoute } from '@/types/prisma';
+import { transformTenderToTrip } from '@/lib/transformers';
 
 export async function GET(request: Request) {
   try {
@@ -23,33 +23,8 @@ export async function GET(request: Request) {
       orderBy: { createdAt: 'desc' },
     });
 
-    // Конвертуємо в старий формат для сумісності з фронтендом
-    const trips = tenders.map((tender: TenderWithRoutes) => {
-      const loadPoints = tender.routes
-        .filter((r: TenderRoute) => r.type === RouteType.LOADING)
-        .map((r: TenderRoute) => ({
-          name: r.name,
-          lat: r.lat,
-          lng: r.lng,
-          displayName: r.displayName
-        }));
-      
-      const unloadPoints = tender.routes
-        .filter((r: TenderRoute) => r.type === RouteType.UNLOADING)
-        .map((r: TenderRoute) => ({
-          name: r.name,
-          lat: r.lat,
-          lng: r.lng,
-          displayName: r.displayName
-        }));
-
-      return {
-        ...tender,
-        load_points: loadPoints,
-        unload_points: unloadPoints,
-        routes: undefined
-      };
-    });
+    // Конвертуємо в формат фронтенду
+    const trips = tenders.map(transformTenderToTrip);
 
     return NextResponse.json({ trips });
   } catch (error) {
@@ -66,10 +41,21 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    
+
     // Валідація з Zod
     const validatedData = tripSchema.parse(body);
-    
+
+    // Конвертація значень в енуми
+    let marginPayerValue: MarginPayer;
+    if (validatedData.margin_payer.toLowerCase() === 'client') {
+      marginPayerValue = MarginPayer.CLIENT;
+    } else {
+      marginPayerValue = MarginPayer.OWNER;
+    }
+
+    // Status вже в правильному форматі (UPPERCASE)
+    const statusValue = validatedData.status as TenderStatus;
+
     const tender = await prisma.tender.create({
       data: {
         userId: session.userId,
@@ -82,29 +68,29 @@ export async function POST(request: Request) {
         ownerPhone: validatedData.owner_phone || null,
         clientName: validatedData.client_name,
         clientPhone: validatedData.client_phone || null,
-        clientPayment: typeof validatedData.client_payment === 'string' 
-          ? parseFloat(validatedData.client_payment) 
+        clientPayment: typeof validatedData.client_payment === 'string'
+          ? parseFloat(validatedData.client_payment)
           : validatedData.client_payment,
         myMargin: typeof validatedData.my_margin === 'string'
           ? parseFloat(validatedData.my_margin)
           : validatedData.my_margin,
-        marginPayer: validatedData.margin_payer.toUpperCase() as MarginPayer,
-        status: validatedData.status.toUpperCase() as TenderStatus,
-        routes: {
+        marginPayer: marginPayerValue,
+        status: statusValue,
+routes: {
           create: [
-            // Load points
+            // Load points: починаємо з 0
             ...validatedData.load_points.map((point, index) => ({
-              type: RouteType.LOADING,
-              sequence: index,
+              type: 'LOADING',
+              sequence: index, 
               name: point.name,
               lat: point.lat,
               lng: point.lng,
               displayName: point.displayName,
             })),
-            // Unload points
+            // Unload points: продовжуємо нумерацію після load_points
             ...validatedData.unload_points.map((point, index) => ({
-              type: RouteType.UNLOADING,
-              sequence: index,
+              type: 'UNLOADING',
+              sequence: validatedData.load_points.length + index, // <--- ЗМІНА ТУТ
               name: point.name,
               lat: point.lat,
               lng: point.lng,
@@ -119,28 +105,10 @@ export async function POST(request: Request) {
         }
       }
     });
+    console.log(tender, 'TENDER');
 
-    // Конвертуємо в старий формат
-    const trip = {
-      ...tender,
-      load_points: tender.routes
-        .filter((r: TenderRoute) => r.type === RouteType.LOADING)
-        .map((r: TenderRoute) => ({
-          name: r.name,
-          lat: r.lat,
-          lng: r.lng,
-          displayName: r.displayName
-        })),
-      unload_points: tender.routes
-        .filter((r: TenderRoute) => r.type === RouteType.UNLOADING)
-        .map((r: TenderRoute) => ({
-          name: r.name,
-          lat: r.lat,
-          lng: r.lng,
-          displayName: r.displayName
-        })),
-      routes: undefined
-    };
+    // Конвертуємо в формат фронтенду
+    const trip = transformTenderToTrip(tender);
 
     const io = (global as any).io;
     if (io) {
@@ -151,7 +119,7 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { 
+        {
           error: error.errors[0].message,
           field: error.errors[0].path[0],
           errors: error.errors
@@ -159,7 +127,7 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    
+
     console.error('Помилка створення рейсу:', error);
     return NextResponse.json({ error: 'Помилка створення рейсу' }, { status: 500 });
   }

@@ -10,7 +10,7 @@ import Modal from './Modal';
 interface TripCardProps {
   trip: Trip;
   onDelete: () => void;
-  onStatusChange: (status: 'pending' | 'paid' | 'waiting') => void;
+  onStatusChange: (status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED') => void;
 }
 
 export default function TripCard({ trip, onDelete, onStatusChange }: TripCardProps) {
@@ -159,7 +159,7 @@ const getRouteDisplayAll = () => {
                 💰 {trip.my_margin} грн
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                {trip.margin_payer === 'client' ? '👤 Замовник' : '🚛 Перевізник'}
+                {trip.margin_payer === 'CLIENT' ? '👤 Замовник' : '🚛 Власник'}
               </p>
               <div className="mt-1">
                 <StatusBadge 
@@ -331,7 +331,7 @@ const getRouteDisplayAll = () => {
                 <span className="font-medium">Моя маржа:</span> {trip.my_margin} грн
               </p>
               <p className="text-gray-700 dark:text-gray-300">
-                <span className="font-medium">Хто платить маржу:</span> {trip.margin_payer === 'client' ? 'Замовник' : 'Перевізник'}
+                <span className="font-medium">Хто платить маржу:</span> {trip.margin_payer === 'CLIENT' ? 'Замовник' : 'Власник'}
               </p>
             </div>
           </div>

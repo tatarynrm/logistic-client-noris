@@ -337,7 +337,7 @@ function EarningsContent() {
                               {trip.my_margin} грн
                             </td>
                             <td className="px-6 py-4 text-sm text-gray-900 dark:text-white text-center">
-                              {trip.margin_payer === 'client' ? 'Замовник' : 'Перевізник'}
+                              {trip.margin_payer === 'CLIENT' ? 'Замовник' : 'Власник'}
                             </td>
                           </tr>
                         )})}
