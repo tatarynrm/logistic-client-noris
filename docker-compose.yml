@@ -7,8 +7,8 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: tripmanager
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: trip-manager
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -30,14 +30,8 @@ services:
     ports:
       - "3000:3000"
     environment:
-      DATABASE_URL: postgresql://postgres:${DB_PASSWORD}@postgres:5432/tripmanager
-      JWT_SECRET: ${JWT_SECRET}
-      PUSHER_APP_ID: ${PUSHER_APP_ID}
-      PUSHER_KEY: ${PUSHER_KEY}
-      PUSHER_SECRET: ${PUSHER_SECRET}
-      PUSHER_CLUSTER: ${PUSHER_CLUSTER}
-      NEXT_PUBLIC_PUSHER_KEY: ${PUSHER_KEY}
-      NEXT_PUBLIC_PUSHER_CLUSTER: ${PUSHER_CLUSTER}
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-postgres}@postgres:5432/trip-manager
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
       NODE_ENV: production
       PORT: 3000
     depends_on:

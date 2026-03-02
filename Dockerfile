@@ -6,6 +6,7 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 COPY prisma ./prisma/
+COPY prisma.config.ts ./
 
 # Install dependencies
 RUN npm ci
@@ -26,10 +27,16 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-# Install only production dependencies
+# Copy package files and prisma
 COPY package*.json ./
 COPY prisma ./prisma/
-RUN npm ci --only=production && npx prisma generate
+COPY prisma.config.ts ./
+
+# Install production dependencies
+RUN npm ci --only=production
+
+# Generate Prisma Client in production
+RUN npx prisma generate
 
 # Copy built app from builder
 COPY --from=builder /app/.next ./.next
@@ -37,6 +44,7 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/next.config.js ./
 COPY --from=builder /app/server.ts ./
 COPY --from=builder /app/src ./src
+COPY --from=builder /app/tsconfig.json ./
 
 EXPOSE 3000
 
