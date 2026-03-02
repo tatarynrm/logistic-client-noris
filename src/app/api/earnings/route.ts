@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { RouteType } from '@prisma/client';
 import type { TenderWithRoutes, TenderRoute } from '@/types/prisma';
 
 export async function GET(request: Request) {
@@ -38,7 +39,7 @@ export async function GET(request: Request) {
     const trips = tenders.map((tender: TenderWithRoutes) => ({
       ...tender,
       load_points: tender.routes
-        .filter((r: TenderRoute) => r.type === 'LOADING')
+        .filter((r: TenderRoute) => r.type === RouteType.LOADING)
         .map((r: TenderRoute) => ({
           name: r.name,
           lat: r.lat,
@@ -46,7 +47,7 @@ export async function GET(request: Request) {
           displayName: r.displayName
         })),
       unload_points: tender.routes
-        .filter((r: TenderRoute) => r.type === 'UNLOADING')
+        .filter((r: TenderRoute) => r.type === RouteType.UNLOADING)
         .map((r: TenderRoute) => ({
           name: r.name,
           lat: r.lat,

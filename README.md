@@ -34,6 +34,8 @@
 ### 🚀 Швидкий старт
 - **[QUICK_START.md](./QUICK_START.md)** - Запуск за 5 хвилин
 - **[QUICK_AUTODEPLOY.md](./QUICK_AUTODEPLOY.md)** - Автодеплой за 15 хвилин
+- **[CHECKLIST.md](./CHECKLIST.md)** - Чеклист налаштування
+- **[CHEATSHEET.md](./CHEATSHEET.md)** - Шпаргалка команд
 
 ### 🐳 Docker
 - **[DOCKER_GUIDE.md](./DOCKER_GUIDE.md)** - Повна інструкція по Docker
@@ -43,6 +45,7 @@
 ### 🔄 Автодеплой
 - **[AUTO_DEPLOY_GUIDE.md](./AUTO_DEPLOY_GUIDE.md)** - Повна інструкція з автодеплою
 - **[.github/workflows/deploy.yml](./.github/workflows/deploy.yml)** - GitHub Actions workflow
+- **[WORKFLOW_DIAGRAM.md](./WORKFLOW_DIAGRAM.md)** - Візуальна схема процесу
 
 ### 🗄️ База даних
 - **[DATABASE_STRUCTURE.md](./DATABASE_STRUCTURE.md)** - Структура бази даних
@@ -52,6 +55,10 @@
 ### 🔐 Налаштування
 - **[ENV_PRODUCTION_GUIDE.md](./ENV_PRODUCTION_GUIDE.md)** - Налаштування .env для production
 - **[.env.example](./.env.example)** - Приклад змінних оточення
+
+### 📖 Додатково
+- **[FAQ.md](./FAQ.md)** - Часті питання
+- **[DOCUMENTATION_INDEX.md](./DOCUMENTATION_INDEX.md)** - Повний індекс документації
 
 ### 🛠️ Скрипти
 - **[setup-server.sh](./setup-server.sh)** - Автоматичне налаштування VPS

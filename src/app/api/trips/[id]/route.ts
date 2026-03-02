@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { MarginPayer, TenderStatus, RouteType } from '@prisma/client';
 import type { TenderRoute } from '@/types/prisma';
 
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
@@ -32,13 +33,13 @@ export async function PUT(request: Request, { params }: { params: { id: string }
         clientPhone: data.client_phone || null,
         clientPayment: parseFloat(data.client_payment),
         myMargin: parseFloat(data.my_margin),
-        marginPayer: data.margin_payer.toUpperCase(),
-        status: data.status.toUpperCase(),
+        marginPayer: data.margin_payer.toUpperCase() as MarginPayer,
+        status: data.status.toUpperCase() as TenderStatus,
         routes: {
           deleteMany: {},
           create: [
             ...data.load_points.map((point: any, index: number) => ({
-              type: 'LOADING',
+              type: RouteType.LOADING,
               sequence: index,
               name: point.name,
               lat: point.lat,
@@ -46,7 +47,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
               displayName: point.displayName,
             })),
             ...data.unload_points.map((point: any, index: number) => ({
-              type: 'UNLOADING',
+              type: RouteType.UNLOADING,
               sequence: index,
               name: point.name,
               lat: point.lat,

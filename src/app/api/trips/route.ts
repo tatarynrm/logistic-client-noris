@@ -3,6 +3,7 @@ import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
 import { tripSchema } from '@/lib/validations/trip';
 import { z } from 'zod';
+import { MarginPayer, TenderStatus, RouteType } from '@prisma/client';
 import type { TenderWithRoutes, TenderRoute } from '@/types/prisma';
 
 export async function GET(request: Request) {
@@ -25,7 +26,7 @@ export async function GET(request: Request) {
     // Конвертуємо в старий формат для сумісності з фронтендом
     const trips = tenders.map((tender: TenderWithRoutes) => {
       const loadPoints = tender.routes
-        .filter((r: TenderRoute) => r.type === 'LOADING')
+        .filter((r: TenderRoute) => r.type === RouteType.LOADING)
         .map((r: TenderRoute) => ({
           name: r.name,
           lat: r.lat,
@@ -34,7 +35,7 @@ export async function GET(request: Request) {
         }));
       
       const unloadPoints = tender.routes
-        .filter((r: TenderRoute) => r.type === 'UNLOADING')
+        .filter((r: TenderRoute) => r.type === RouteType.UNLOADING)
         .map((r: TenderRoute) => ({
           name: r.name,
           lat: r.lat,
@@ -87,13 +88,13 @@ export async function POST(request: Request) {
         myMargin: typeof validatedData.my_margin === 'string'
           ? parseFloat(validatedData.my_margin)
           : validatedData.my_margin,
-        marginPayer: validatedData.margin_payer.toUpperCase(),
-        status: validatedData.status.toUpperCase(),
+        marginPayer: validatedData.margin_payer.toUpperCase() as MarginPayer,
+        status: validatedData.status.toUpperCase() as TenderStatus,
         routes: {
           create: [
             // Load points
             ...validatedData.load_points.map((point, index) => ({
-              type: 'LOADING',
+              type: RouteType.LOADING,
               sequence: index,
               name: point.name,
               lat: point.lat,
@@ -102,7 +103,7 @@ export async function POST(request: Request) {
             })),
             // Unload points
             ...validatedData.unload_points.map((point, index) => ({
-              type: 'UNLOADING',
+              type: RouteType.UNLOADING,
               sequence: index,
               name: point.name,
               lat: point.lat,
@@ -123,7 +124,7 @@ export async function POST(request: Request) {
     const trip = {
       ...tender,
       load_points: tender.routes
-        .filter((r: TenderRoute) => r.type === 'LOADING')
+        .filter((r: TenderRoute) => r.type === RouteType.LOADING)
         .map((r: TenderRoute) => ({
           name: r.name,
           lat: r.lat,
@@ -131,7 +132,7 @@ export async function POST(request: Request) {
           displayName: r.displayName
         })),
       unload_points: tender.routes
-        .filter((r: TenderRoute) => r.type === 'UNLOADING')
+        .filter((r: TenderRoute) => r.type === RouteType.UNLOADING)
         .map((r: TenderRoute) => ({
           name: r.name,
           lat: r.lat,

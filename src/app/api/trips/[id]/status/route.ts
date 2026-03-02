@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
 import { prisma } from '@/lib/db';
+import { RouteType } from '@prisma/client';
 import type { TenderRoute } from '@/types/prisma';
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
@@ -32,20 +33,20 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     const trip = {
       ...tender,
       load_points: tender.routes
-        .filter((r: TenderRoute) => r.type === 'load')
+        .filter((r: TenderRoute) => r.type === RouteType.LOADING)
         .map((r: TenderRoute) => ({
           name: r.name,
           lat: r.lat,
           lng: r.lng,
-          displayName: r.display_name
+          displayName: r.displayName
         })),
       unload_points: tender.routes
-        .filter((r: TenderRoute) => r.type === 'unload')
+        .filter((r: TenderRoute) => r.type === RouteType.UNLOADING)
         .map((r: TenderRoute) => ({
           name: r.name,
           lat: r.lat,
           lng: r.lng,
-          displayName: r.display_name
+          displayName: r.displayName
         })),
       routes: undefined
     };
