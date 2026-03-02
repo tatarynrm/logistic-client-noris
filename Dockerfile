@@ -32,11 +32,12 @@ COPY package*.json ./
 COPY prisma ./prisma/
 COPY prisma.config.ts ./
 
-# Install production dependencies
-RUN npm ci --only=production
+# Install production dependencies (without running postinstall)
+RUN npm ci --omit=dev --ignore-scripts
 
-# Generate Prisma Client in production
-RUN npx prisma generate
+# Copy Prisma Client from builder stage
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
 # Copy built app from builder
 COPY --from=builder /app/.next ./.next
@@ -46,6 +47,10 @@ COPY --from=builder /app/server.ts ./
 COPY --from=builder /app/src ./src
 COPY --from=builder /app/tsconfig.json ./
 
+# Copy entrypoint script
+COPY docker-entrypoint.sh ./
+RUN chmod +x docker-entrypoint.sh
+
 EXPOSE 3000
 
-CMD ["npm", "start"]
+ENTRYPOINT ["./docker-entrypoint.sh"]
