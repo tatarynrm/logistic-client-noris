@@ -41,7 +41,7 @@ export default function Navigation({ user }: NavigationProps) {
                 onClick={() => router.push('/dashboard')}
                 className="text-2xl font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
               >
-                🚚 Логістика v1
+                🚚 Логістика v2
               </button>
               
               <div className="hidden md:flex gap-2">
