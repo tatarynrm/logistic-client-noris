@@ -1,23 +1,18 @@
 'use client';
 
-interface ButtonProps {
+interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
-  onClick?: () => void;
-  type?: 'button' | 'submit' | 'reset';
   variant?: 'primary' | 'secondary' | 'danger';
   size?: 'sm' | 'md' | 'lg';
-  disabled?: boolean;
-  className?: string;
 }
 
 export default function Button({ 
   children, 
-  onClick, 
-  type = 'button', 
   variant = 'primary',
   size = 'md',
-  disabled = false,
-  className = ''
+  className = '',
+  type = 'button',
+  ...props
 }: ButtonProps) {
   const baseStyles = 'inline-flex items-center justify-center font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl active:scale-[0.98] outline-none focus-visible:ring-2 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900';
   
@@ -36,9 +31,8 @@ export default function Button({
   return (
     <button
       type={type}
-      onClick={onClick}
-      disabled={disabled}
       className={`${baseStyles} ${sizes[size]} ${variants[variant]} ${className}`}
+      {...props}
     >
       {children}
     </button>

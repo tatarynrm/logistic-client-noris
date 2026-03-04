@@ -165,22 +165,22 @@ export default function Navigation({ user }: NavigationProps) {
         title="Підтвердження виходу"
         size="sm"
       >
-        <div className="space-y-5">
-          <p className="text-slate-700 dark:text-slate-300 text-base">
+        <div className="space-y-6 p-2">
+          <p className="text-slate-600 dark:text-slate-400 font-medium">
             Ви впевнені, що хочете вийти з облікового запису?
           </p>
-          <div className="flex gap-3">
+          <div className="flex gap-4">
             <Button
               variant="secondary"
               onClick={() => setLogoutModalOpen(false)}
-              className="flex-1"
+              className="flex-1 !rounded-2xl"
             >
               Скасувати
             </Button>
             <Button
               variant="danger"
               onClick={handleLogout}
-              className="flex-1"
+              className="flex-1 !rounded-2xl !bg-rose-500 hover:!bg-rose-600 shadow-glow-rose"
             >
               Вийти
             </Button>

@@ -81,54 +81,82 @@ export default function WeatherWidget() {
     return 'Невідомо';
   };
 
-  const cities = ['Бурштин', 'Львів', 'Варшава',];
+  const cityConfigs = [
+    { name: 'Київ', id: 'Kyiv' },
+    { name: 'Львів', id: 'Lviv' },
+    { name: 'Варшава', id: 'Warsaw' },
+    { name: 'Бурштин', id: 'Burshtyn' },
+  ];
+
+  const getWeatherGradient = (code: number) => {
+    if (code === 0) return 'from-amber-400 via-orange-500 to-rose-500'; // Sunny
+    if (code <= 3) return 'from-blue-400 via-indigo-500 to-violet-600'; // Cloudy
+    if (code <= 48) return 'from-slate-400 to-slate-600'; // Fog
+    if (code <= 67) return 'from-indigo-500 via-blue-600 to-slate-700'; // Rain
+    if (code <= 77) return 'from-blue-100 via-blue-200 to-slate-300'; // Snow
+    if (code <= 99) return 'from-slate-800 via-purple-900 to-black'; // Storm
+    return 'from-blue-500 to-indigo-600';
+  };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-gray-600 dark:text-gray-400">Завантаження...</div>
+      <div className="flex flex-col items-center justify-center h-full py-12 animate-pulse">
+        <div className="w-12 h-12 rounded-full border-4 border-slate-200 border-t-blue-500 animate-spin mb-4"></div>
+        <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Прогноз завантажується...</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex gap-2 flex-wrap">
-        {cities.map((c) => (
+    <div className="space-y-3 animate-fade-in">
+      <div className="flex gap-2.5 flex-wrap px-1">
+        {cityConfigs.map((c) => (
           <button
-            key={c}
-            onClick={() => setCity(c)}
-            className={`px-3 py-1 rounded-lg text-sm font-medium transition-all ${
-              city === c
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+            key={c.id}
+            onClick={() => setCity(c.id)}
+            className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 ${
+              city.toLowerCase() === c.id.toLowerCase()
+                ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xl scale-105'
+                : 'bg-white dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white border border-slate-100 dark:border-slate-700'
             }`}
           >
-            {c}
+            {c.name}
           </button>
         ))}
       </div>
 
       {weather && (
-        <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white">
-          <div className="flex items-center justify-between mb-4">
+        <div className={`relative overflow-hidden bg-gradient-to-br ${getWeatherGradient(weather.temp > 30 ? 0 : 3)} rounded-[2.5rem] p-8 text-white shadow-2xl transition-all duration-700 group`}>
+          {/* Subtle noise/texture overlay */}
+          <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/asfalt-dark.png')] pointer-events-none"></div>
+          
+          <div className="flex items-start justify-between relative z-10">
             <div>
-              <h3 className="text-2xl font-bold">{weather.city}</h3>
-              <p className="text-blue-100">{weather.description}</p>
+              <div className="flex items-center gap-2 mb-1">
+                 <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-80">Поточна Погода</span>
+                 <div className="w-1 h-1 rounded-full bg-white opacity-50 animate-pulse"></div>
+              </div>
+              <h3 className="text-4xl font-black tracking-tighter mb-1 select-none">{weather.city}</h3>
+              <p className="text-sm font-bold opacity-90 tracking-wide">{weather.description}</p>
             </div>
-            <div className="text-6xl">{weather.icon}</div>
+            <div className="text-7xl drop-shadow-2xl animate-bounce-slow filter saturate-150">
+               {weather.icon}
+            </div>
           </div>
           
-          <div className="text-5xl font-bold mb-6">{weather.temp}°C</div>
+          <div className="mt-10 mb-8 relative z-10 flex items-baseline">
+             <span className="text-7xl sm:text-8xl font-black tracking-tighter drop-shadow-xl">{weather.temp}</span>
+             <span className="text-3xl font-black opacity-60 ml-1">°C</span>
+          </div>
           
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white/20 rounded-lg p-3">
-              <p className="text-blue-100 text-sm">Вологість</p>
-              <p className="text-xl font-bold">{weather.humidity}%</p>
+          <div className="grid grid-cols-2 gap-4 relative z-10">
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10 group-hover:bg-white/20 transition-all">
+              <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-1">Вологість</p>
+              <p className="text-xl font-black">{weather.humidity}%</p>
             </div>
-            <div className="bg-white/20 rounded-lg p-3">
-              <p className="text-blue-100 text-sm">Вітер</p>
-              <p className="text-xl font-bold">{weather.windSpeed} км/год</p>
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10 group-hover:bg-white/20 transition-all">
+              <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-1">Вітер</p>
+              <p className="text-xl font-black">{weather.windSpeed} <span className="text-xs opacity-60">км/год</span></p>
             </div>
           </div>
         </div>

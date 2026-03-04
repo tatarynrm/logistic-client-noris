@@ -13,335 +13,246 @@ interface TripCardProps {
   onStatusChange: (status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED') => void;
 }
 
+const STATUS_META: Record<string, { strip: string; glow: string }> = {
+  COMPLETED:   { strip: 'from-emerald-400 to-teal-500',   glow: 'hover:shadow-emerald-500/10' },
+  IN_PROGRESS: { strip: 'from-blue-400 to-indigo-500',    glow: 'hover:shadow-blue-500/10'   },
+  CANCELLED:   { strip: 'from-rose-400 to-red-500',       glow: 'hover:shadow-rose-500/10'   },
+  PENDING:     { strip: 'from-amber-400 to-orange-400',   glow: 'hover:shadow-amber-500/10'  },
+};
+
 export default function TripCard({ trip, onDelete, onStatusChange }: TripCardProps) {
   const router = useRouter();
   const [detailsOpen, setDetailsOpen] = useState(false);
-  
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('uk-UA', {
-      day: 'numeric',
-      month: 'numeric',
-      year: '2-digit',
-    });
+
+  const load   = trip.load_points   as unknown as LocationPoint[];
+  const unload = trip.unload_points as unknown as LocationPoint[];
+
+  const formatDate = (d: string) =>
+    new Date(d).toLocaleDateString('uk-UA', { day: 'numeric', month: 'short' });
+
+  const formatDateFull = (d: string) =>
+    new Date(d).toLocaleString('uk-UA', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+  const route = [...load, ...unload].map(p => p.displayName).join(' → ') || '—';
+
+  const openMap = () => {
+    const pts = [...load, ...unload];
+    if (pts.length < 2) return;
+    window.open(`https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=${pts.map(p => `${p.lat},${p.lng}`).join(';')}`, '_blank');
   };
 
-  const formatDateTime = (date: string) => {
-    return new Date(date).toLocaleString('uk-UA', {
-      day: 'numeric',
-      month: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
-  const getRouteDisplay = () => {
-    const loadPoints = trip.load_points as unknown as LocationPoint[];
-    const unloadPoints = trip.unload_points as unknown as LocationPoint[];
-    
-    if (loadPoints.length > 0 && unloadPoints.length > 0) {
-      return `${loadPoints[0].displayName} → ${unloadPoints[0].displayName}`;
-    }
-    return "N/A";
-  };
-const getRouteDisplayAll = () => {
-  const loadPoints = (trip.load_points as unknown as LocationPoint[]) || [];
-  const unloadPoints = (trip.unload_points as unknown as LocationPoint[]) || [];
-  
-  const allPoints = [...loadPoints, ...unloadPoints];
-
-  if (allPoints.length > 0) {
-    return allPoints.map(point => point.displayName).join(" → ");
-  }
-  
-  return "N/A";
-};
-  const getAllPoints = (points: LocationPoint[]) => {
-    return points.map((p, i) => `${i + 1}. ${p.displayName}`).join(', ');
-  };
-
-  const loadPoints = trip.load_points as unknown as LocationPoint[];
-  const unloadPoints = trip.unload_points as unknown as LocationPoint[];
+  const meta = STATUS_META[trip.status] ?? STATUS_META.PENDING;
+  const isClient = trip.margin_payer === 'CLIENT';
 
   return (
     <>
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden border border-gray-200 dark:border-gray-700">
-        {/* Фіксована шапка */}
-        <div className="bg-gray-50 dark:bg-gray-700/50 px-4 py-2 border-b border-gray-200 dark:border-gray-700">
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-            <div>Маршрут</div>
-            <div className="hidden md:block">Водій</div>
-            <div className="hidden md:block">Замовник</div>
-            <div className="hidden md:block">Транспорт</div>
-            <div>Фінанси</div>
-            <div className="text-right">Дії</div>
-          </div>
-        </div>
+      <article className={`group relative bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 ${meta.glow}`}>
 
-        {/* Контент */}
-        <div className="px-4 py-3">
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4 items-start">
-            {/* Маршрут */}
-            <div className="space-y-1">
-              <p className="text-sm font-bold text-gray-800 dark:text-white">
-                {getRouteDisplayAll()}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                📅 {formatDate(trip.load_date)}
+        {/* Status strip */}
+        <div className={`h-0.5 w-full bg-gradient-to-r ${meta.strip}`} />
+
+        {/* ── Header ── */}
+        <div className="px-4 py-3 flex items-start gap-3 justify-between">
+          <div className="flex-1 min-w-0">
+            {/* Route */}
+            <p className="text-[13px] font-bold text-slate-800 dark:text-slate-100 leading-snug truncate">
+              {route}
+            </p>
+            {/* Dates */}
+            <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+              <span className="text-[11px] font-medium text-slate-400 dark:text-slate-500">
+                {formatDate(trip.load_date)}
                 {trip.unload_date && ` → ${formatDate(trip.unload_date)}`}
-              </p>
-              {loadPoints.length > 1 && (
-                <p className="text-xs text-blue-600 dark:text-blue-400">
-                  📍 {loadPoints.length} точок завантаження
-                </p>
-              )}
-              {unloadPoints.length > 1 && (
-                <p className="text-xs text-green-600 dark:text-green-400">
-                  📍 {unloadPoints.length} точок вигрузки
-                </p>
-              )}
-            </div>
-
-            {/* Водій */}
-            <div className="hidden md:block space-y-1">
-              <p className="text-sm font-semibold text-gray-800 dark:text-white truncate">
-                👤 {trip.driver_name}
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                📞 {trip.driver_phone}
-              </p>
-              <p className="text-xs text-blue-600 dark:text-blue-400 truncate">
-                🚗 {trip.vehicle_info}
-              </p>
-            </div>
-
-            {/* Замовник */}
-            <div className="hidden md:block space-y-1">
-              <p className="text-sm font-semibold text-gray-800 dark:text-white truncate">
-                🏢 {trip.client_name}
-              </p>
-              {trip.client_phone && (
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  📞 {trip.client_phone}
-                </p>
-              )}
-            </div>
-
-            {/* Транспорт/Власник */}
-            <div className="hidden md:block space-y-1">
-              {trip.owner_name ? (
-                <>
-                  <p className="text-sm font-semibold text-gray-800 dark:text-white truncate">
-                    👨‍💼 {trip.owner_name}
-                  </p>
-                  {trip.owner_phone && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      📞 {trip.owner_phone}
-                    </p>
-                  )}
-                  <p className="text-xs text-blue-600 dark:text-blue-400 truncate">
-                    🚗 {trip.vehicle_info}
-                  </p>
-                </>
-              ) : (
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  🚗 {trip.vehicle_info}
-                </p>
-              )}
-            </div>
-            
-            {/* Фінанси */}
-            <div className="space-y-1">
-              <p className="text-sm font-bold text-gray-800 dark:text-white">
-                {trip.client_payment} грн
-              </p>
-              <p className="text-xs text-green-600 dark:text-green-400 font-semibold">
-                💰 {trip.my_margin} грн
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                {trip.margin_payer === 'CLIENT' ? '👤 Замовник' : '🚛 Власник'}
-              </p>
-              <div className="mt-1">
-                <StatusBadge 
-                  status={trip.status} 
-                  onChange={onStatusChange}
-                  editable
-                />
-              </div>
-            </div>
-
-            {/* Дії */}
-            <div className="flex md:flex-col lg:flex-row gap-2 justify-end">
-              <Button 
-                variant="secondary" 
-                size="sm" 
-                onClick={() => setDetailsOpen(true)}
-              >
-                ℹ️
-              </Button>
-              <Button 
-                variant="secondary" 
-                size="sm" 
-                onClick={() => window.open(`https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=${loadPoints.map(p => `${p.lat},${p.lng}`).join(';')};${unloadPoints.map(p => `${p.lat},${p.lng}`).join(';')}`, '_blank')}
-              >
-                🗺️
-              </Button>
-              <Button 
-                variant="secondary" 
-                size="sm" 
-                onClick={() => router.push(`/trips/${trip.id}/edit`)}
-              >
-                ✏️
-              </Button>
-              <Button 
-                variant="danger" 
-                size="sm" 
-                onClick={onDelete}
-              >
-                🗑️
-              </Button>
+              </span>
+              {load.length > 1   && <Tag color="blue">{load.length} t(load)</Tag>}
+              {unload.length > 1 && <Tag color="emerald">{unload.length} t(unload)</Tag>}
             </div>
           </div>
 
-          {/* Мобільна версія - додаткова інформація */}
-          <div className="md:hidden mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 space-y-2">
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-gray-500 dark:text-gray-400">👤</span>
-              <span className="text-gray-800 dark:text-white">{trip.driver_name}</span>
-              <span className="text-gray-500 dark:text-gray-400">•</span>
-              <span className="text-gray-600 dark:text-gray-400">{trip.driver_phone}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-gray-500 dark:text-gray-400">🏢</span>
-              <span className="text-gray-800 dark:text-white">{trip.client_name}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-gray-500 dark:text-gray-400">🚗</span>
-              <span className="text-gray-600 dark:text-gray-400">{trip.vehicle_info}</span>
-            </div>
+          {/* Actions */}
+          <div className="flex items-center gap-1 flex-shrink-0 mt-0.5">
+            <StatusBadge status={trip.status} onChange={onStatusChange} editable />
+            <Btn onClick={() => setDetailsOpen(true)} title="Деталі">ℹ️</Btn>
+            <Btn onClick={openMap} title="Карта" disabled={load.length === 0 || unload.length === 0}>🗺️</Btn>
+            <Btn onClick={() => router.push(`/trips/${trip.id}/edit`)} title="Редагувати">✏️</Btn>
+            <Btn onClick={onDelete} title="Видалити" className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity">🗑️</Btn>
           </div>
         </div>
-      </div>
 
-      <Modal
-        isOpen={detailsOpen}
-        onClose={() => setDetailsOpen(false)}
-        title="Детальна інформація про рейс"
-        size="lg"
-      >
-        <div className="space-y-6">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">📅 Дати</h3>
-            <div className="space-y-2 text-sm">
-              <p className="text-gray-700 dark:text-gray-300">
-                <span className="font-medium">Завантаження:</span> {formatDateTime(trip.load_date)}
-              </p>
-              {trip.unload_date && (
-                <p className="text-gray-700 dark:text-gray-300">
-                  <span className="font-medium">Вигрузка:</span> {formatDateTime(trip.unload_date)}
-                </p>
-              )}
-            </div>
-          </div>
+        {/* ── Body ── */}
+        <div className="px-4 pb-3 grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-3 border-t border-slate-100 dark:border-slate-800/80 pt-3">
 
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">📍 Маршрут</h3>
-            <div className="space-y-3">
-              <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
-                <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-2">
-                  Точки завантаження ({loadPoints.length}):
-                </p>
-                <div className="space-y-1">
-                  {loadPoints.map((point, idx) => (
-                    <p key={idx} className="text-sm text-gray-700 dark:text-gray-300">
-                      {idx + 1}. {point.displayName}
-                    </p>
-                  ))}
-                </div>
+          <Cell label="Водій" icon="👤" iconClass="bg-blue-50 dark:bg-blue-900/20 text-blue-500 dark:text-blue-400">
+            <Line bold>{trip.driver_name}</Line>
+            <Line muted>{trip.driver_phone}</Line>
+          </Cell>
+
+          <Cell label="Транспорт" icon="🚛" iconClass="bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
+            <Line bold>{trip.vehicle_info || '—'}</Line>
+            {trip.owner_name && <Line muted>{trip.owner_name}</Line>}
+          </Cell>
+
+          <Cell label="Замовник" icon="🤝" iconClass="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400">
+            <Line bold>{trip.client_name}</Line>
+            {trip.client_phone && <Line muted>{trip.client_phone}</Line>}
+          </Cell>
+
+          {/* Finances */}
+          <div className="flex flex-col gap-1">
+            <Label>Фінанси</Label>
+            <div className="flex flex-col gap-1 mt-0.5">
+              <div className="flex items-baseline justify-between">
+                <span className="text-[10px] text-slate-400 dark:text-slate-500">Оплата</span>
+                <span className="text-[13px] font-bold text-slate-800 dark:text-slate-100">{trip.client_payment}<span className="text-[10px] font-normal ml-0.5 text-slate-400">грн</span></span>
               </div>
-              <div className="bg-green-50 dark:bg-green-900/20 p-3 rounded-lg">
-                <p className="text-sm font-medium text-green-600 dark:text-green-400 mb-2">
-                  Точки вигрузки ({unloadPoints.length}):
-                </p>
-                <div className="space-y-1">
-                  {unloadPoints.map((point, idx) => (
-                    <p key={idx} className="text-sm text-gray-700 dark:text-gray-300">
-                      {idx + 1}. {point.displayName}
-                    </p>
-                  ))}
-                </div>
+              <div className="flex items-baseline justify-between">
+                <span className="text-[10px] text-slate-400 dark:text-slate-500">Маржа</span>
+                <span className="text-[13px] font-bold text-emerald-600 dark:text-emerald-400">{trip.my_margin}<span className="text-[10px] font-normal ml-0.5 text-emerald-400/60">грн</span></span>
+              </div>
+              <div className="flex items-center justify-end mt-0.5">
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  isClient
+                    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-500 dark:text-blue-400'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                }`}>
+                  {isClient ? '🤝 замовник' : '🚛 власник'}
+                </span>
               </div>
             </div>
           </div>
 
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">🚗 Водій та транспорт</h3>
-            <div className="space-y-2 text-sm bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
-              <p className="text-gray-700 dark:text-gray-300">
-                <span className="font-medium">Водій:</span> {trip.driver_name}
-              </p>
-              <p className="text-gray-700 dark:text-gray-300">
-                <span className="font-medium">Телефон:</span> {trip.driver_phone}
-              </p>
-              <p className="text-gray-700 dark:text-gray-300">
-                <span className="font-medium">Транспорт:</span> {trip.vehicle_info}
-              </p>
+        </div>
+      </article>
+
+      {/* ── Details Modal ── */}
+      <Modal isOpen={detailsOpen} onClose={() => setDetailsOpen(false)} title="Деталі рейсу" size="lg">
+        <div className="space-y-4">
+
+          <ModalBlock icon="📅" title="Дати">
+            <MRow label="Завантаження" value={formatDateFull(trip.load_date)} />
+            {trip.unload_date && <MRow label="Вигрузка" value={formatDateFull(trip.unload_date)} />}
+          </ModalBlock>
+
+          <ModalBlock icon="📍" title="Маршрут">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div className="bg-blue-50 dark:bg-blue-900/15 rounded-xl p-3">
+                <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1.5">Завантаження</p>
+                {load.map((p, i) => <p key={i} className="text-xs text-slate-600 dark:text-slate-300 font-medium">{i+1}. {p.displayName}</p>)}
+              </div>
+              <div className="bg-emerald-50 dark:bg-emerald-900/15 rounded-xl p-3">
+                <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1.5">Вигрузка</p>
+                {unload.map((p, i) => <p key={i} className="text-xs text-slate-600 dark:text-slate-300 font-medium">{i+1}. {p.displayName}</p>)}
+              </div>
             </div>
-          </div>
+          </ModalBlock>
+
+          <ModalBlock icon="🚗" title="Водій та транспорт">
+            <MRow label="Водій"     value={trip.driver_name} />
+            <MRow label="Телефон"   value={trip.driver_phone} />
+            <MRow label="Транспорт" value={trip.vehicle_info} />
+          </ModalBlock>
 
           {(trip.owner_name || trip.owner_phone) && (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">👤 Власник машини</h3>
-              <div className="space-y-2 text-sm bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
-                {trip.owner_name && (
-                  <p className="text-gray-700 dark:text-gray-300">
-                    <span className="font-medium">Ім'я:</span> {trip.owner_name}
-                  </p>
-                )}
-                {trip.owner_phone && (
-                  <p className="text-gray-700 dark:text-gray-300">
-                    <span className="font-medium">Телефон:</span> {trip.owner_phone}
-                  </p>
-                )}
-              </div>
-            </div>
+            <ModalBlock icon="🏢" title="Перевізник">
+              {trip.owner_name  && <MRow label="Ім'я"    value={trip.owner_name} />}
+              {trip.owner_phone && <MRow label="Телефон" value={trip.owner_phone} />}
+            </ModalBlock>
           )}
 
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">📞 Замовник</h3>
-            <div className="space-y-2 text-sm bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
-              <p className="text-gray-700 dark:text-gray-300">
-                <span className="font-medium">Ім'я:</span> {trip.client_name}
-              </p>
-              {trip.client_phone && (
-                <p className="text-gray-700 dark:text-gray-300">
-                  <span className="font-medium">Телефон:</span> {trip.client_phone}
-                </p>
-              )}
-            </div>
-          </div>
+          <ModalBlock icon="🤝" title="Замовник">
+            <MRow label="Ім'я"    value={trip.client_name} />
+            {trip.client_phone && <MRow label="Телефон" value={trip.client_phone} />}
+          </ModalBlock>
 
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">💰 Фінанси</h3>
-            <div className="space-y-2 text-sm bg-gradient-to-br from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 p-4 rounded-lg">
-              <p className="text-gray-700 dark:text-gray-300">
-                <span className="font-medium">Оплата від замовника:</span> {trip.client_payment} грн
-              </p>
-              <p className="text-gray-700 dark:text-gray-300">
-                <span className="font-medium">Моя маржа:</span> {trip.my_margin} грн
-              </p>
-              <p className="text-gray-700 dark:text-gray-300">
-                <span className="font-medium">Хто платить маржу:</span> {trip.margin_payer === 'CLIENT' ? 'Замовник' : 'Власник'}
-              </p>
-            </div>
-          </div>
+          <ModalBlock icon="💰" title="Фінанси">
+            <MRow label="Оплата"        value={`${trip.client_payment} грн`} />
+            <MRow label="Маржа"         value={`${trip.my_margin} грн`} accent="emerald" />
+            <MRow label="Платить маржу" value={isClient ? '🤝 Замовник' : '🚛 Власник'} accent={isClient ? 'blue' : undefined} />
+          </ModalBlock>
 
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">📊 Статус</h3>
+          <ModalBlock icon="📊" title="Статус">
             <StatusBadge status={trip.status} onChange={onStatusChange} editable />
-          </div>
+          </ModalBlock>
+
         </div>
       </Modal>
     </>
+  );
+}
+
+// ── Primitives ────────────────────────────────────────────────────────────────
+
+function Label({ children }: { children: React.ReactNode }) {
+  return <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{children}</span>;
+}
+
+function Cell({ label, icon, iconClass, children }: { label: string; icon: string; iconClass: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Label>{label}</Label>
+      <div className="flex items-start gap-2">
+        <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs flex-shrink-0 ${iconClass}`}>{icon}</div>
+        <div className="min-w-0 flex flex-col gap-0.5 pt-0.5">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function Line({ children, bold, muted }: { children: React.ReactNode; bold?: boolean; muted?: boolean }) {
+  if (!children) return null;
+  return (
+    <p className={`truncate leading-snug ${bold ? 'text-[13px] font-semibold text-slate-800 dark:text-slate-100' : ''} ${muted ? 'text-[11px] text-slate-400 dark:text-slate-500' : ''}`}>
+      {children}
+    </p>
+  );
+}
+
+function Tag({ color, children }: { color: 'blue' | 'emerald'; children: React.ReactNode }) {
+  return (
+    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+      color === 'blue'    ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-500'
+                         : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600'
+    }`}>{children}</span>
+  );
+}
+
+function Btn({ children, onClick, title, disabled, className = '' }: {
+  children: React.ReactNode; onClick?: () => void; title?: string; disabled?: boolean; className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      title={title}
+      className={`w-7 h-7 flex items-center justify-center rounded-lg text-sm hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed ${className}`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function ModalBlock({ icon, title, children }: { icon: string; title: string; children: React.ReactNode }) {
+  return (
+    <div className="rounded-xl border border-slate-100 dark:border-slate-800 overflow-hidden">
+      <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 dark:bg-slate-800/60 border-b border-slate-100 dark:border-slate-800">
+        <span className="text-sm">{icon}</span>
+        <span className="text-[11px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">{title}</span>
+      </div>
+      <div className="px-3 py-2.5 space-y-1.5">{children}</div>
+    </div>
+  );
+}
+
+function MRow({ label, value, accent }: { label: string; value: string; accent?: 'emerald' | 'blue' }) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className="text-xs text-slate-400 dark:text-slate-500 flex-shrink-0">{label}</span>
+      <span className={`text-xs font-semibold text-right ${
+        accent === 'emerald' ? 'text-emerald-600 dark:text-emerald-400' :
+        accent === 'blue'    ? 'text-blue-600 dark:text-blue-400' :
+                               'text-slate-700 dark:text-slate-200'
+      }`}>{value}</span>
+    </div>
   );
 }

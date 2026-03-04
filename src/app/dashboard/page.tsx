@@ -10,6 +10,9 @@ import Modal from '@/components/Modal';
 import { io, Socket } from 'socket.io-client';
 import { usePersistedState } from '@/hooks/usePersistedState';
 
+import Skeleton from '@/components/Skeleton';
+import EmptyState from '@/components/EmptyState';
+
 function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -154,8 +157,8 @@ function DashboardContent() {
 
   const searchInTrip = (trip: Trip, query: string): boolean => {
     const lowerQuery = query.toLowerCase();
-    const loadPoints = trip.load_points as unknown as LocationPoint[];
-    const unloadPoints = trip.unload_points as unknown as LocationPoint[];
+    const loadPoints = (trip.load_points as unknown as LocationPoint[]) || [];
+    const unloadPoints = (trip.unload_points as unknown as LocationPoint[]) || [];
     
     const locationMatch = [...loadPoints, ...unloadPoints].some(point => 
       point.displayName.toLowerCase().includes(lowerQuery) ||
@@ -196,160 +199,120 @@ function DashboardContent() {
     totalMargin: trips.reduce((sum, t) => sum + t.my_margin, 0),
   };
 
-  if (loading) {
+  if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-xl text-gray-600 dark:text-gray-400">Завантаження...</div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <div className="w-16 h-16 rounded-full border-4 border-slate-200 border-t-blue-500 animate-spin mb-4"></div>
+        <p className="text-sm font-black text-slate-500 uppercase tracking-widest">Авторизація...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <Navigation user={user} />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
-            <p className="text-xs text-gray-500 dark:text-gray-400 uppercase">Всього</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.total}</p>
-          </div>
-          <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg shadow p-4">
-            <p className="text-xs text-orange-700 dark:text-orange-400 uppercase">Очікую</p>
-            <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{stats.pending}</p>
-          </div>
-          <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg shadow p-4">
-            <p className="text-xs text-blue-700 dark:text-blue-400 uppercase">В процесі</p>
-            <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.inProgress}</p>
-          </div>
-          <div className="bg-green-50 dark:bg-green-900/20 rounded-lg shadow p-4">
-            <p className="text-xs text-green-700 dark:text-green-400 uppercase">Завершено</p>
-            <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.completed}</p>
-          </div>
-          <div className="bg-red-50 dark:bg-red-900/20 rounded-lg shadow p-4">
-            <p className="text-xs text-red-700 dark:text-red-400 uppercase">Скасовано</p>
-            <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.cancelled}</p>
-          </div>
-          <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg shadow p-4">
-            <p className="text-xs text-purple-700 dark:text-purple-400 uppercase">Маржа</p>
-            <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{stats.totalMargin} грн</p>
-          </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-6 mb-12">
+          {loading ? (
+             Array(6).fill(0).map((_, i) => <Skeleton key={i} className="h-32 rounded-3xl" />)
+          ) : (
+            <>
+              <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-sm border border-slate-200/60 dark:border-slate-800/60 p-6 transition-all hover:shadow-xl hover:-translate-y-1">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Всього</p>
+                <p className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">{stats.total}</p>
+              </div>
+              <div className="bg-amber-50/50 dark:bg-amber-900/10 rounded-[2.5rem] shadow-sm border border-amber-100 dark:border-amber-900/30 p-6 transition-all hover:shadow-xl hover:-translate-y-1">
+                <p className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest mb-2">Очікують</p>
+                <p className="text-4xl font-black text-amber-600 dark:text-amber-400 tracking-tight">{stats.pending}</p>
+              </div>
+              <div className="bg-blue-50/50 dark:bg-blue-900/10 rounded-[2.5rem] shadow-sm border border-blue-100 dark:border-blue-900/30 p-6 transition-all hover:shadow-xl hover:-translate-y-1">
+                <p className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-2">В дорозі</p>
+                <p className="text-4xl font-black text-blue-600 dark:text-blue-400 tracking-tight">{stats.inProgress}</p>
+              </div>
+              <div className="bg-emerald-50/50 dark:bg-emerald-900/10 rounded-[2.5rem] shadow-sm border border-emerald-100 dark:border-emerald-900/30 p-6 transition-all hover:shadow-xl hover:-translate-y-1">
+                <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-2">Завершено</p>
+                <p className="text-4xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight">{stats.completed}</p>
+              </div>
+              <div className="bg-rose-50/50 dark:bg-rose-900/10 rounded-[2.5rem] shadow-sm border border-rose-100 dark:border-rose-900/30 p-6 transition-all hover:shadow-xl hover:-translate-y-1">
+                <p className="text-[10px] font-black text-rose-600 dark:text-rose-400 uppercase tracking-widest mb-2">Скасовано</p>
+                <p className="text-4xl font-black text-rose-600 dark:text-rose-400 tracking-tight">{stats.cancelled}</p>
+              </div>
+              <div className="bg-violet-600 rounded-[2.5rem] shadow-glow border-none p-6 transition-all hover:shadow-2xl hover:-translate-y-1 text-white relative overflow-hidden group">
+                <div className="absolute -right-4 -top-4 w-16 h-16 bg-white/10 rounded-full blur-xl group-hover:scale-150 transition-transform duration-700"></div>
+                <p className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-2">Прибуток</p>
+                <p className="text-2xl font-black truncate relative z-10" title={`${stats.totalMargin} грн`}>{stats.totalMargin} <span className="text-xs opacity-60">грн</span></p>
+              </div>
+            </>
+          )}
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 mb-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
+        <div className="bg-white/70 dark:bg-slate-900/50 backdrop-blur-xl rounded-[2.5rem] shadow-sm border border-slate-200/60 dark:border-slate-800/60 p-6 mb-10">
+          <div className="flex flex-col md:flex-row gap-5 items-center">
+            <div className="flex-1 w-full relative group">
+              <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors">🔍</span>
               <input
                 type="text"
-                placeholder="🔍 Пошук по всім полям..."
+                placeholder="Пошук маршруту, водія, номеру авто..."
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+                className="w-full pl-12 pr-5 py-4 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
               />
             </div>
             {searchQuery && (
-              <Button variant="secondary" onClick={() => handleSearchChange('')}>
+              <Button variant="secondary" onClick={() => handleSearchChange('')} className="!rounded-2xl">
                 Очистити
               </Button>
             )}
           </div>
-          {searchQuery && (
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-              Знайдено: {filteredTrips.length} рейсів
-            </p>
-          )}
         </div>
 
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-          <div className="flex gap-2 overflow-x-auto pb-2 w-full md:w-auto">
-            <button
-              onClick={() => handleFilterChange('all')}
-              className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
-                filter === 'all'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              Всі рейси
-            </button>
-            <button
-              onClick={() => handleFilterChange('PENDING')}
-              className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
-                filter === 'PENDING'
-                  ? 'bg-orange-600 text-white'
-                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              Очікую
-            </button>
-            <button
-              onClick={() => handleFilterChange('IN_PROGRESS')}
-              className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
-                filter === 'IN_PROGRESS'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              В процесі
-            </button>
-            <button
-              onClick={() => handleFilterChange('COMPLETED')}
-              className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
-                filter === 'COMPLETED'
-                  ? 'bg-green-600 text-white'
-                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              Завершено
-            </button>
-            <button
-              onClick={() => handleFilterChange('CANCELLED')}
-              className={`px-4 py-2 rounded-lg font-medium transition-all whitespace-nowrap ${
-                filter === 'CANCELLED'
-                  ? 'bg-red-600 text-white'
-                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-            >
-              Скасовано
-            </button>
+        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 mb-10 bg-white/50 dark:bg-slate-900/50 p-2.5 rounded-[2rem] border border-slate-200/50 dark:border-slate-800/50">
+          <div className="flex gap-2 overflow-x-auto pb-2 xl:pb-0 w-full xl:w-auto scrollbar-hide px-2">
+            {(['all', 'PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'] as const).map((s) => (
+              <button
+                key={s}
+                onClick={() => handleFilterChange(s)}
+                className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap flex-shrink-0 ${
+                  filter === s
+                    ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xl scale-105'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                {s === 'all' ? 'Всі рейси' : s === 'PENDING' ? 'Очікую' : s === 'IN_PROGRESS' ? 'В дорозі' : s === 'COMPLETED' ? 'Завершено' : 'Скасовано'}
+              </button>
+            ))}
           </div>
 
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
+          <div className="flex items-center gap-4 px-4">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
               Показувати:
             </label>
             <select
               value={itemsPerPage}
               onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
-              className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 bg-white dark:bg-slate-800 border-none rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-blue-500/50 cursor-pointer shadow-sm"
             >
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-              <option value={200}>200</option>
+              {[10, 20, 50, 100].map(n => <option key={n} value={n}>{n}</option>)}
             </select>
           </div>
         </div>
 
-        {filteredTrips.length === 0 ? (
-          <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl shadow">
-            <p className="text-gray-600 dark:text-gray-400 text-lg mb-4">
-              {searchQuery 
-                ? 'Нічого не знайдено за вашим запитом' 
-                : filter === 'all' 
-                  ? 'У вас ще немає рейсів' 
-                  : 'Немає рейсів з таким статусом'}
-            </p>
-            {!searchQuery && (
-              <Button onClick={() => router.push('/trips/new')}>
-                Створити перший рейс
-              </Button>
-            )}
-          </div>
+        {loading ? (
+           <div className="grid grid-cols-1 gap-6">
+              {Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-48 rounded-[2.5rem]" />)}
+           </div>
+        ) : filteredTrips.length === 0 ? (
+          <EmptyState 
+            title={searchQuery ? "Нічого не знайдено" : "Рейсів поки немає"}
+            description={searchQuery ? "Перевірте правильність пошукового запиту або змініть фільтри." : "Зареєструйте перший рейс у системі для початку роботи."}
+            icon={searchQuery ? "🕵️" : "🚚"}
+            actionLabel={!searchQuery ? "Створити рейс" : undefined}
+            onAction={!searchQuery ? () => router.push('/trips/new') : undefined}
+          />
         ) : (
           <>
-            <div className="grid grid-cols-1 gap-4 mb-6">
+            <div className="grid grid-cols-1 gap-6 animate-fade-in mb-10">
               {paginatedTrips.map(trip => (
                 <TripCard
                   key={trip.id}
@@ -361,58 +324,42 @@ function DashboardContent() {
             </div>
 
             {totalPages > 1 && (
-              <div className="flex justify-center items-center gap-2 mt-8">
+              <div className="flex justify-center items-center gap-4">
                 <Button
                   variant="secondary"
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
+                  className="!rounded-2xl"
                 >
-                  ← Назад
+                  ←
                 </Button>
                 
                 <div className="flex gap-2">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
-                    if (
-                      page === 1 ||
-                      page === totalPages ||
-                      (page >= currentPage - 1 && page <= currentPage + 1)
-                    ) {
-                      return (
-                        <button
-                          key={page}
-                          onClick={() => setCurrentPage(page)}
-                          className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                            currentPage === page
-                              ? 'bg-blue-600 text-white'
-                              : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                          }`}
-                        >
-                          {page}
-                        </button>
-                      );
-                    } else if (
-                      page === currentPage - 2 ||
-                      page === currentPage + 2
-                    ) {
-                      return <span key={page} className="px-2 text-gray-500">...</span>;
-                    }
-                    return null;
-                  })}
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-10 h-10 rounded-xl font-black text-xs transition-all ${
+                        currentPage === page
+                          ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg scale-110'
+                          : 'bg-white dark:bg-slate-800 text-slate-500 border border-slate-100 dark:border-slate-700'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
                 </div>
 
                 <Button
                   variant="secondary"
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
+                  className="!rounded-2xl"
                 >
-                  Вперед →
+                  →
                 </Button>
               </div>
             )}
-
-            <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-4">
-              Сторінка {currentPage} з {totalPages} • Показано {startIndex + 1}-{Math.min(endIndex, filteredTrips.length)} з {filteredTrips.length} рейсів
-            </p>
           </>
         )}
       </main>
@@ -423,22 +370,22 @@ function DashboardContent() {
         title="Підтвердження видалення"
         size="sm"
       >
-        <div className="space-y-4">
-          <p className="text-gray-700 dark:text-gray-300">
+        <div className="space-y-6 p-2">
+          <p className="text-slate-600 dark:text-slate-400 font-medium">
             Ви впевнені, що хочете видалити цей рейс? Цю дію неможливо скасувати.
           </p>
-          <div className="flex gap-3">
+          <div className="flex gap-4">
             <Button
               variant="secondary"
               onClick={() => setDeleteModalOpen(false)}
-              className="flex-1"
+              className="flex-1 !rounded-2xl"
             >
               Скасувати
             </Button>
             <Button
               variant="danger"
               onClick={confirmDelete}
-              className="flex-1"
+              className="flex-1 !rounded-2xl !bg-rose-500 hover:!bg-rose-600 shadow-glow-rose"
             >
               Видалити
             </Button>

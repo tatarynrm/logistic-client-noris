@@ -8,6 +8,9 @@ import Navigation from '@/components/Navigation';
 import StatusBadge from '@/components/StatusBadge';
 import { Trip, LocationPoint } from '@/types';
 
+import Skeleton from '@/components/Skeleton';
+import EmptyState from '@/components/EmptyState';
+
 const ITEMS_PER_PAGE = 20;
 
 function EarningsContent() {
@@ -134,8 +137,8 @@ function EarningsContent() {
 
   const searchInTrip = (trip: Trip, query: string): boolean => {
     const lowerQuery = query.toLowerCase();
-    const loadPoints = trip.load_points as unknown as LocationPoint[];
-    const unloadPoints = trip.unload_points as unknown as LocationPoint[];
+    const loadPoints = (trip.load_points as unknown as LocationPoint[]) || [];
+    const unloadPoints = (trip.unload_points as unknown as LocationPoint[]) || [];
     
     const locationMatch = [...loadPoints, ...unloadPoints].some(point => 
       point.displayName.toLowerCase().includes(lowerQuery) ||
@@ -167,253 +170,221 @@ function EarningsContent() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-xl text-gray-600 dark:text-gray-400">Завантаження...</div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <div className="w-16 h-16 rounded-full border-4 border-slate-200 border-t-blue-500 animate-spin mb-4"></div>
+        <p className="text-sm font-black text-slate-500 uppercase tracking-widest">Авторизація...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
       <Navigation user={user} />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-            Оберіть період
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        <div className="bg-white/70 dark:bg-slate-900/50 backdrop-blur-xl rounded-[2.5rem] shadow-sm border border-slate-200/60 dark:border-slate-800/60 p-8 mb-10">
+          <h2 className="text-2xl font-black mb-6 text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
+            <span className="p-2 bg-blue-500/10 rounded-xl text-blue-500">📅</span> Оберіть період
           </h2>
           
-          <div className="flex flex-wrap gap-3 mb-6">
-            <Button variant="secondary" onClick={setCurrentMonth}>
+          <div className="flex flex-wrap gap-3 mb-8">
+            <button 
+              onClick={setCurrentMonth} 
+              className="px-6 py-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 hover:border-blue-500 hover:text-blue-500 transition-all shadow-sm"
+            >
               Поточний місяць
-            </Button>
-            <Button variant="secondary" onClick={setLastMonth}>
+            </button>
+            <button 
+              onClick={setLastMonth} 
+              className="px-6 py-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 hover:border-blue-500 hover:text-blue-500 transition-all shadow-sm"
+            >
               Минулий місяць
-            </Button>
-            <Button variant="secondary" onClick={setCurrentYear}>
+            </button>
+            <button 
+              onClick={setCurrentYear} 
+              className="px-6 py-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 hover:border-blue-500 hover:text-blue-500 transition-all shadow-sm"
+            >
               Поточний рік
-            </Button>
+            </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              label="Від"
-              type="date"
-              value={startDate}
-              onChange={setStartDate}
-            />
-            <Input
-              label="До"
-              type="date"
-              value={endDate}
-              onChange={setEndDate}
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Дата початку</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full px-5 py-4 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Дата кінця</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full px-5 py-4 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
+              />
+            </div>
           </div>
         </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          {loading ? (
+             Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-32 rounded-[2.5rem]" />)
+          ) : (
+            <>
+              <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-sm border border-slate-200/60 dark:border-slate-800/60 p-8 transition-all hover:shadow-xl hover:-translate-y-1">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Всього рейсів</p>
+                <div className="flex items-baseline gap-2">
+                  <p className="text-5xl font-black text-slate-900 dark:text-white tracking-tighter">{summary.tripCount}</p>
+                  <span className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">рейсів</span>
+                </div>
+              </div>
+
+              <div className="bg-blue-600 rounded-[2.5rem] shadow-glow border-none p-8 transition-all hover:shadow-2xl hover:-translate-y-1 text-white relative overflow-hidden group">
+                <div className="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+                <p className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-3">Оплата замовників</p>
+                <p className="text-4xl font-black relative z-10 tracking-tight">
+                  {summary.totalPayment.toLocaleString('uk-UA')} <span className="text-sm font-bold opacity-60">грн</span>
+                </p>
+              </div>
+
+              <div className="bg-violet-600 rounded-[2.5rem] shadow-glow-violet border-none p-8 transition-all hover:shadow-2xl hover:-translate-y-1 text-white relative overflow-hidden group">
+                <div className="absolute -left-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+                <p className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-3">Чиста маржа</p>
+                <p className="text-4xl font-black relative z-10 tracking-tight">
+                  {summary.totalMargin.toLocaleString('uk-UA')} <span className="text-sm font-bold opacity-60">грн</span>
+                </p>
+              </div>
+            </>
+          )}
+        </div>
+
         {loading ? (
-          <div className="text-center py-12">
-            <p className="text-gray-600 dark:text-gray-400">Завантаження...</p>
-          </div>
+          <Skeleton className="h-[600px] rounded-[2.5rem]" />
+        ) : filteredTrips.length === 0 ? (
+          <EmptyState 
+            title={searchQuery ? "Нічого не знайдено" : "Звіт порожній"}
+            description={searchQuery ? "Перевірте параметри пошуку." : "За обраний період рейсів не знайдено. Спробуйте змінити дати."}
+            icon="📊"
+          />
         ) : (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Кількість рейсів</p>
-                <p className="text-4xl font-bold text-gray-900 dark:text-white">
-                  {summary.tripCount}
-                </p>
-              </div>
-
-              <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6">
-                <p className="text-sm text-blue-100 mb-2">Оплата замовників</p>
-                <p className="text-4xl font-bold text-white">
-                  {summary.totalPayment.toFixed(0)} грн
-                </p>
-              </div>
-
-              <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6">
-                <p className="text-sm text-green-100 mb-2">Моя маржа</p>
-                <p className="text-4xl font-bold text-white">
-                  {summary.totalMargin.toFixed(0)} грн
-                </p>
+          <div className="bg-white/70 dark:bg-slate-900/50 backdrop-blur-xl rounded-[2.5rem] shadow-sm border border-slate-200/60 dark:border-slate-800/60 overflow-hidden animate-fade-in">
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex-1 w-full relative group">
+                <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors">🔍</span>
+                <input
+                  type="text"
+                  placeholder="Швидкий фільтр у звіті..."
+                  value={searchQuery}
+                  onChange={(e) => handleSearchChange(e.target.value)}
+                  className="w-full pl-12 pr-5 py-4 bg-white/50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-800 rounded-[1.5rem] text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium text-sm"
+                />
               </div>
             </div>
 
-            {trips.length > 0 && (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 mb-6">
-                <div className="flex flex-col md:flex-row gap-4">
-                  <div className="flex-1">
-                    <input
-                      type="text"
-                      placeholder="🔍 Пошук по всім полям..."
-                      value={searchQuery}
-                      onChange={(e) => handleSearchChange(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-                    />
-                  </div>
-                  {searchQuery && (
-                    <Button variant="secondary" onClick={() => handleSearchChange('')}>
-                      Очистити
-                    </Button>
-                  )}
-                </div>
-                {searchQuery && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                    Знайдено: {filteredTrips.length} рейсів
-                  </p>
-                )}
-              </div>
-            )}
-
-            {filteredTrips.length === 0 ? (
-              <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
-                <p className="text-gray-600 dark:text-gray-400">
-                  {searchQuery ? 'Нічого не знайдено за вашим запитом' : 'Немає рейсів за обраний період'}
-                </p>
-              </div>
-            ) : (
-              <>
-                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden mb-6">
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-gray-50 dark:bg-gray-700">
-                        <tr>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                            Дата завантаження
-                          </th>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                            Маршрут
-                          </th>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                            Водій
-                          </th>
-                          <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                            Статус
-                          </th>
-                          <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                            Оплата замовника
-                          </th>
-                          <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                            Маржа
-                          </th>
-                          <th className="px-6 py-4 text-center text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                            Платить маржу
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                        {paginatedTrips.map(trip => {
-                          const loadPoints = trip.load_points as unknown as LocationPoint[];
-                          const unloadPoints = trip.unload_points as unknown as LocationPoint[];
-                          const routeDisplay = loadPoints.length === 1 && unloadPoints.length === 1
-                            ? `${loadPoints[0].displayName} → ${unloadPoints[0].displayName}`
-                            : `${loadPoints.length} точок → ${unloadPoints.length} точок`;
-                          
-                          return (
-                          <tr key={trip.id} className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                            <td className="px-6 py-4 text-sm text-gray-900 dark:text-white whitespace-nowrap">
-                              {formatDate(trip.load_date)}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
-                              <div className="font-medium">{routeDisplay}</div>
-                              {trip.unload_date && (
-                                <div className="text-xs text-gray-500 dark:text-gray-400">
-                                  Вигрузка: {formatDate(trip.unload_date)}
-                                </div>
-                              )}
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
-                              <div>{trip.driver_name}</div>
-                              <div className="text-xs text-gray-500 dark:text-gray-400">{trip.driver_phone}</div>
-                            </td>
-                            <td className="px-6 py-4 text-sm">
-                              <StatusBadge status={trip.status} />
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-900 dark:text-white text-right font-medium">
-                              {trip.client_payment} грн
-                            </td>
-                            <td className="px-6 py-4 text-sm text-green-600 dark:text-green-400 text-right font-bold">
-                              {trip.my_margin} грн
-                            </td>
-                            <td className="px-6 py-4 text-sm text-gray-900 dark:text-white text-center">
-                              {trip.margin_payer === 'CLIENT' ? 'Замовник' : 'Власник'}
-                            </td>
-                          </tr>
-                        )})}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                {totalPages > 1 && (
-                  <div className="flex justify-center items-center gap-2">
-                    <Button
-                      variant="secondary"
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      ← Назад
-                    </Button>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/50 dark:bg-slate-950/30">
+                    <th className="px-8 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Дата</th>
+                    <th className="px-8 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Маршрут</th>
+                    <th className="px-8 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Деталі</th>
+                    <th className="px-8 py-5 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest">Статус</th>
+                    <th className="px-8 py-5 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Оплата</th>
+                    <th className="px-8 py-5 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Маржа</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/50">
+                  {paginatedTrips.map(trip => {
+                    const loadPoints = (trip.load_points as unknown as LocationPoint[]) || [];
+                    const unloadPoints = (trip.unload_points as unknown as LocationPoint[]) || [];
+                    const routeDisplay = loadPoints.length === 1 && unloadPoints.length === 1
+                      ? `${loadPoints[0].name} → ${unloadPoints[0].name}`
+                      : `${loadPoints.length} точок → ${unloadPoints.length} точок`;
                     
-                    <div className="flex gap-2">
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
-                        if (
-                          page === 1 ||
-                          page === totalPages ||
-                          (page >= currentPage - 1 && page <= currentPage + 1)
-                        ) {
-                          return (
-                            <button
-                              key={page}
-                              onClick={() => setCurrentPage(page)}
-                              className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                                currentPage === page
-                                  ? 'bg-blue-600 text-white'
-                                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                              }`}
-                            >
-                              {page}
-                            </button>
-                          );
-                        } else if (
-                          page === currentPage - 2 ||
-                          page === currentPage + 2
-                        ) {
-                          return <span key={page} className="px-2 text-gray-500">...</span>;
-                        }
-                        return null;
-                      })}
-                    </div>
+                    return (
+                      <tr key={trip.id} className="hover:bg-blue-50/30 dark:hover:bg-blue-900/10 transition-colors group">
+                        <td className="px-8 py-6 text-sm text-slate-600 dark:text-slate-400 whitespace-nowrap font-bold">
+                          {formatDate(trip.load_date)}
+                        </td>
+                        <td className="px-8 py-6">
+                          <div className="text-sm font-black text-slate-900 dark:text-white mb-1">{routeDisplay}</div>
+                          <div className="text-[10px] text-slate-400 uppercase font-black tracking-widest line-clamp-1 opacity-60">
+                            {loadPoints[0]?.displayName}
+                          </div>
+                        </td>
+                        <td className="px-8 py-6">
+                          <div className="text-sm font-bold text-slate-700 dark:text-slate-300">{trip.driver_name}</div>
+                          <div className="text-[10px] text-slate-400 font-black">{trip.vehicle_info || trip.driver_phone}</div>
+                        </td>
+                        <td className="px-8 py-6">
+                          <StatusBadge status={trip.status} />
+                        </td>
+                        <td className="px-8 py-6 text-right">
+                          <div className="text-sm font-black text-slate-900 dark:text-white">{trip.client_payment.toLocaleString()}</div>
+                          <div className="text-[10px] text-slate-400 font-bold">грн</div>
+                        </td>
+                        <td className="px-8 py-6 text-right">
+                          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/10 text-emerald-500 rounded-lg text-sm font-black">
+                            {trip.my_margin.toLocaleString()}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
 
-                    <Button
-                      variant="secondary"
-                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                      disabled={currentPage === totalPages}
+            {totalPages > 1 && (
+              <div className="p-8 border-top border-slate-100 dark:border-slate-800 flex justify-center items-center gap-4">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="w-12 h-12 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl text-slate-600 disabled:opacity-30 transition-all hover:bg-slate-50"
+                >
+                  ←
+                </button>
+                <div className="flex gap-2">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-12 h-12 rounded-2xl font-black text-xs transition-all ${
+                        currentPage === page
+                          ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xl scale-110'
+                          : 'bg-white dark:bg-slate-800 text-slate-500 border border-slate-100 dark:border-slate-700'
+                      }`}
                     >
-                      Вперед →
-                    </Button>
-                  </div>
-                )}
-
-                <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-4">
-                  Сторінка {currentPage} з {totalPages} • Показано {startIndex + 1}-{Math.min(endIndex, filteredTrips.length)} з {filteredTrips.length} рейсів
-                </p>
-              </>
+                      {page}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="w-12 h-12 flex items-center justify-center bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl text-slate-600 disabled:opacity-30 transition-all hover:bg-slate-50"
+                >
+                  →
+                </button>
+              </div>
             )}
-          </>
+          </div>
         )}
       </main>
     </div>
   );
 }
 
-
 export default function EarningsPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-xl text-gray-600 dark:text-gray-400">Завантаження...</div>
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <div className="w-16 h-16 rounded-full border-4 border-slate-200 border-t-blue-500 animate-spin mb-4"></div>
+        <p className="text-sm font-black text-slate-500 uppercase tracking-widest">Аналітика...</p>
       </div>
     }>
       <EarningsContent />
