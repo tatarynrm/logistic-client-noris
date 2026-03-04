@@ -387,8 +387,8 @@ export default function NewTripPage() {
                   <input
                     type="radio"
                     name="margin_payer"
-                    value="carrier"
-                    checked={formData.margin_payer === 'carrier'}
+                    value="owner"
+                    checked={formData.margin_payer === 'owner'}
                     onChange={(e) => updateField('margin_payer', e.target.value)}
                     className="w-4 h-4 text-blue-600"
                   />
