@@ -16,14 +16,14 @@ import EmptyState from '@/components/EmptyState';
 function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [, setSocket] = useState<Socket | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [tripToDelete, setTripToDelete] = useState<string | null>(null);
-  
+
   const [filter, setFilter] = useState<'all' | 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'>(
     (searchParams.get('filter') as any) || 'all'
   );
@@ -78,7 +78,7 @@ function DashboardContent() {
     if (filter !== 'all') params.set('filter', filter);
     if (searchQuery) params.set('search', searchQuery);
     if (currentPage > 1) params.set('page', currentPage.toString());
-    
+
     const newURL = params.toString() ? `?${params.toString()}` : '/dashboard';
     window.history.replaceState({}, '', newURL);
   };
@@ -159,12 +159,12 @@ function DashboardContent() {
     const lowerQuery = query.toLowerCase();
     const loadPoints = (trip.load_points as unknown as LocationPoint[]) || [];
     const unloadPoints = (trip.unload_points as unknown as LocationPoint[]) || [];
-    
-    const locationMatch = [...loadPoints, ...unloadPoints].some(point => 
+
+    const locationMatch = [...loadPoints, ...unloadPoints].some(point =>
       point.displayName.toLowerCase().includes(lowerQuery) ||
       point.name.toLowerCase().includes(lowerQuery)
     );
-    
+
     return (
       locationMatch ||
       trip.driver_name.toLowerCase().includes(lowerQuery) ||
@@ -201,194 +201,184 @@ function DashboardContent() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-950">
-        <div className="w-16 h-16 rounded-full border-4 border-slate-200 border-t-blue-500 animate-spin mb-4"></div>
-        <p className="text-sm font-black text-slate-500 uppercase tracking-widest">Авторизація...</p>
+      <div className="fixed inset-0 flex flex-col items-center justify-center bg-slate-950">
+        <div className="w-24 h-24 rounded-full border-t-2 border-cyan-500 animate-spin mb-8"></div>
+        <p className="font-display font-black text-white uppercase tracking-[0.5em] animate-pulse">Initializing System...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+    <div className="min-h-screen dark:bg-slate-950 selection:bg-cyan-500/30">
+      {/* Background Ambience */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-cyan-500/5 blur-[120px] rounded-full animate-float"></div>
+        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-blue-500/5 blur-[120px] rounded-full animate-float" style={{ animationDelay: '-3s' }}></div>
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.02] bg-[length:32px_32px]"></div>
+      </div>
+
       <Navigation user={user} />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-6 mb-12">
+      <main className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 py-12 md:py-20">
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6 mb-16">
           {loading ? (
-             Array(6).fill(0).map((_, i) => <Skeleton key={i} className="h-32 rounded-3xl" />)
+            Array(6).fill(0).map((_, i) => <Skeleton key={i} className="h-40 rounded-[2.5rem] bg-white/5" />)
           ) : (
             <>
-              <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-sm border border-slate-200/60 dark:border-slate-800/60 p-6 transition-all hover:shadow-xl hover:-translate-y-1">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Всього</p>
-                <p className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">{stats.total}</p>
-              </div>
-              <div className="bg-amber-50/50 dark:bg-amber-900/10 rounded-[2.5rem] shadow-sm border border-amber-100 dark:border-amber-900/30 p-6 transition-all hover:shadow-xl hover:-translate-y-1">
-                <p className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest mb-2">Очікують</p>
-                <p className="text-4xl font-black text-amber-600 dark:text-amber-400 tracking-tight">{stats.pending}</p>
-              </div>
-              <div className="bg-blue-50/50 dark:bg-blue-900/10 rounded-[2.5rem] shadow-sm border border-blue-100 dark:border-blue-900/30 p-6 transition-all hover:shadow-xl hover:-translate-y-1">
-                <p className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-2">В дорозі</p>
-                <p className="text-4xl font-black text-blue-600 dark:text-blue-400 tracking-tight">{stats.inProgress}</p>
-              </div>
-              <div className="bg-emerald-50/50 dark:bg-emerald-900/10 rounded-[2.5rem] shadow-sm border border-emerald-100 dark:border-emerald-900/30 p-6 transition-all hover:shadow-xl hover:-translate-y-1">
-                <p className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-2">Завершено</p>
-                <p className="text-4xl font-black text-emerald-600 dark:text-emerald-400 tracking-tight">{stats.completed}</p>
-              </div>
-              <div className="bg-rose-50/50 dark:bg-rose-900/10 rounded-[2.5rem] shadow-sm border border-rose-100 dark:border-rose-900/30 p-6 transition-all hover:shadow-xl hover:-translate-y-1">
-                <p className="text-[10px] font-black text-rose-600 dark:text-rose-400 uppercase tracking-widest mb-2">Скасовано</p>
-                <p className="text-4xl font-black text-rose-600 dark:text-rose-400 tracking-tight">{stats.cancelled}</p>
-              </div>
-              <div className="bg-violet-600 rounded-[2.5rem] shadow-glow border-none p-6 transition-all hover:shadow-2xl hover:-translate-y-1 text-white relative overflow-hidden group">
-                <div className="absolute -right-4 -top-4 w-16 h-16 bg-white/10 rounded-full blur-xl group-hover:scale-150 transition-transform duration-700"></div>
-                <p className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-2">Прибуток</p>
-                <p className="text-2xl font-black truncate relative z-10" title={`${stats.totalMargin} грн`}>{stats.totalMargin} <span className="text-xs opacity-60">грн</span></p>
+              <StatCard label="Усі" value={stats.total} />
+              <StatCard label="Очікується" value={stats.pending} color="text-amber-500" />
+              <StatCard label="В дорозі" value={stats.inProgress} color="text-cyan-500" />
+              <StatCard label="Завершено" value={stats.completed} color="text-emerald-500" />
+              <StatCard label="Скасовано" value={stats.cancelled} color="text-rose-500" />
+              <div className="col-span-2 lg:col-span-1 glass-card p-8 flex flex-col justify-between border-cyan-500/20 bg-cyan-500/5 group hover:border-cyan-500 transition-all duration-700">
+                <p className="text-[10px] font-display font-black text-cyan-500 uppercase tracking-widest">Revenue</p>
+                <div className="space-y-1">
+                  <p className="text-3xl font-display font-black text-white tracking-tighter truncate leading-none">
+                    {stats.totalMargin}
+                  </p>
+                  <p className="text-[10px] font-display font-black text-cyan-500/50 uppercase tracking-widest">UAH Total</p>
+                </div>
               </div>
             </>
           )}
         </div>
 
-        <div className="bg-white/70 dark:bg-slate-900/50 backdrop-blur-xl rounded-[2.5rem] shadow-sm border border-slate-200/60 dark:border-slate-800/60 p-6 mb-10">
-          <div className="flex flex-col md:flex-row gap-5 items-center">
-            <div className="flex-1 w-full relative group">
-              <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors">🔍</span>
-              <input
-                type="text"
-                placeholder="Пошук маршруту, водія, номеру авто..."
-                value={searchQuery}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                className="w-full pl-12 pr-5 py-4 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
-              />
+        {/* Search and Filters */}
+        <div className="flex flex-col gap-6 mb-12">
+          <div className="relative group">
+            <div className="absolute inset-y-0 left-6 flex items-center pointer-events-none text-slate-500 group-focus-within:text-cyan-500 transition-colors">
+              🔍
             </div>
-            {searchQuery && (
-              <Button variant="secondary" onClick={() => handleSearchChange('')} className="!rounded-2xl">
-                Очистити
+            <input
+              type="text"
+              placeholder="Пошук..."
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="w-full pl-16 pr-8 py-6 glass rounded-full border-white/5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500/50 transition-all font-display font-bold text-lg"
+            />
+          </div>
+
+          <div className="flex items-center justify-between p-2 glass rounded-full border-white/5 overflow-x-auto scrollbar-hide">
+            <div className="flex gap-2">
+              {(['all', 'PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'] as const).map((s) => (
+                <button
+                  key={s}
+                  onClick={() => handleFilterChange(s)}
+                  className={`px-8 py-4 rounded-full text-[10px] font-display font-black uppercase tracking-widest transition-all duration-500 whitespace-nowrap ${filter === s
+                    ? 'bg-cyan-500 text-slate-950 shadow-glow'
+                    : 'text-slate-400 hover:text-white'
+                    }`}
+                >
+                  {s === 'all' ? 'Всі рейси' : s === 'PENDING' ? 'Очікується' : s === 'IN_PROGRESS' ? 'В дорозі' : s === 'COMPLETED' ? 'Завершено' : 'Скасовано'}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Content Area */}
+        {loading ? (
+          <div className="grid grid-cols-1 gap-6">
+            {Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-64 rounded-[3rem] bg-white/5" />)}
+          </div>
+        ) : filteredTrips.length === 0 ? (
+          <div className="glass-card py-32 flex flex-col items-center border-dashed border-white/10">
+            <div className="w-24 h-24 rounded-full glass border-white/10 flex items-center justify-center text-4xl mb-8 animate-float">
+              {searchQuery ? "🕵️" : "🚚"}
+            </div>
+            <h3 className="text-2xl font-display font-black text-white mb-2">
+              {searchQuery ? "No Results Found" : "System Archive Empty"}
+            </h3>
+            <p className="text-slate-500 font-display font-bold max-w-md text-center mb-8">
+              {searchQuery ? "Modify your search parameters or check the filter alignment." : "Initialize your first logistic mission to populate the control grid."}
+            </p>
+            {!searchQuery && (
+              <Button onClick={() => router.push('/trips/new')} className="!px-10 !py-5 !bg-cyan-500 shadow-glow">
+                ➕ Create Mission
               </Button>
             )}
           </div>
-        </div>
-
-        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 mb-10 bg-white/50 dark:bg-slate-900/50 p-2.5 rounded-[2rem] border border-slate-200/50 dark:border-slate-800/50">
-          <div className="flex gap-2 overflow-x-auto pb-2 xl:pb-0 w-full xl:w-auto scrollbar-hide px-2">
-            {(['all', 'PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'] as const).map((s) => (
-              <button
-                key={s}
-                onClick={() => handleFilterChange(s)}
-                className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 whitespace-nowrap flex-shrink-0 ${
-                  filter === s
-                    ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xl scale-105'
-                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-                }`}
-              >
-                {s === 'all' ? 'Всі рейси' : s === 'PENDING' ? 'Очікую' : s === 'IN_PROGRESS' ? 'В дорозі' : s === 'COMPLETED' ? 'Завершено' : 'Скасовано'}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-4 px-4">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-              Показувати:
-            </label>
-            <select
-              value={itemsPerPage}
-              onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
-              className="px-4 py-2 bg-white dark:bg-slate-800 border-none rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-blue-500/50 cursor-pointer shadow-sm"
-            >
-              {[10, 20, 50, 100].map(n => <option key={n} value={n}>{n}</option>)}
-            </select>
-          </div>
-        </div>
-
-        {loading ? (
-           <div className="grid grid-cols-1 gap-6">
-              {Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-48 rounded-[2.5rem]" />)}
-           </div>
-        ) : filteredTrips.length === 0 ? (
-          <EmptyState 
-            title={searchQuery ? "Нічого не знайдено" : "Рейсів поки немає"}
-            description={searchQuery ? "Перевірте правильність пошукового запиту або змініть фільтри." : "Зареєструйте перший рейс у системі для початку роботи."}
-            icon={searchQuery ? "🕵️" : "🚚"}
-            actionLabel={!searchQuery ? "Створити рейс" : undefined}
-            onAction={!searchQuery ? () => router.push('/trips/new') : undefined}
-          />
         ) : (
-          <>
-            <div className="grid grid-cols-1 gap-6 animate-fade-in mb-10">
-              {paginatedTrips.map(trip => (
-                <TripCard
-                  key={trip.id}
-                  trip={trip}
-                  onDelete={() => handleDeleteTrip(trip.id)}
-                  onStatusChange={(status) => handleStatusChange(trip.id, status)}
-                />
+          <div className="space-y-8 animate-fade-in mb-20">
+            <div className="grid grid-cols-1 gap-8">
+              {paginatedTrips.map((trip, idx) => (
+                <div key={trip.id} className="animate-slide-up" style={{ animationDelay: `${idx * 0.1}s` }}>
+                  <TripCard
+                    trip={trip}
+                    onDelete={() => handleDeleteTrip(trip.id)}
+                    onStatusChange={(status) => handleStatusChange(trip.id, status)}
+                  />
+                </div>
               ))}
             </div>
 
+            {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex justify-center items-center gap-4">
-                <Button
-                  variant="secondary"
+              <div className="flex justify-center items-center gap-6 pt-12 border-t border-white/5">
+                <button
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
-                  className="!rounded-2xl"
+                  className="w-16 h-16 rounded-full glass border-white/5 flex items-center justify-center disabled:opacity-20 hover:border-cyan-500 transition-all text-xl"
                 >
                   ←
-                </Button>
-                
-                <div className="flex gap-2">
+                </button>
+
+                <div className="flex gap-3">
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
-                      className={`w-10 h-10 rounded-xl font-black text-xs transition-all ${
-                        currentPage === page
-                          ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg scale-110'
-                          : 'bg-white dark:bg-slate-800 text-slate-500 border border-slate-100 dark:border-slate-700'
-                      }`}
+                      className={`w-12 h-12 rounded-2xl font-display font-black text-xs transition-all duration-500 ${currentPage === page
+                        ? 'bg-cyan-500 text-slate-950 shadow-glow scale-110'
+                        : 'glass border-white/5 text-slate-500 hover:text-white'
+                        }`}
                     >
                       {page}
                     </button>
                   ))}
                 </div>
 
-                <Button
-                  variant="secondary"
+                <button
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
-                  className="!rounded-2xl"
+                  className="w-16 h-16 rounded-full glass border-white/5 flex items-center justify-center disabled:opacity-20 hover:border-cyan-500 transition-all text-xl"
                 >
                   →
-                </Button>
+                </button>
               </div>
             )}
-          </>
+          </div>
         )}
       </main>
 
       <Modal
         isOpen={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
-        title="Підтвердження видалення"
+        title="Mission Termination"
         size="sm"
       >
-        <div className="space-y-6 p-2">
-          <p className="text-slate-600 dark:text-slate-400 font-medium">
-            Ви впевнені, що хочете видалити цей рейс? Цю дію неможливо скасувати.
+        <div className="p-4 space-y-8 text-center">
+          <div className="w-20 h-20 bg-rose-500/10 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 animate-float">
+            ⚠️
+          </div>
+          <p className="text-slate-400 font-display font-bold text-lg leading-relaxed">
+            Confirm mission data deletion. This action will permanently remove all flight records.
           </p>
-          <div className="flex gap-4">
+          <div className="flex flex-col gap-3">
             <Button
-              variant="secondary"
-              onClick={() => setDeleteModalOpen(false)}
-              className="flex-1 !rounded-2xl"
-            >
-              Скасувати
-            </Button>
-            <Button
-              variant="danger"
               onClick={confirmDelete}
-              className="flex-1 !rounded-2xl !bg-rose-500 hover:!bg-rose-600 shadow-glow-rose"
+              className="!w-full !py-5 !bg-rose-500 hover:!bg-rose-600 shadow-glow"
             >
-              Видалити
+              Terminate Record
             </Button>
+            <button
+              onClick={() => setDeleteModalOpen(false)}
+              className="w-full py-4 text-[10px] font-display font-black uppercase tracking-widest text-slate-500 hover:text-white transition-colors"
+            >
+              Abort Deletion
+            </button>
           </div>
         </div>
       </Modal>
@@ -396,11 +386,24 @@ function DashboardContent() {
   );
 }
 
+function StatCard({ label, value, color = "text-white" }: { label: string; value: number | string; color?: string }) {
+  return (
+    <div className="glass-card p-6 md:p-8 flex flex-col justify-between group overflow-hidden relative">
+      <div className="absolute -right-4 -top-4 w-12 h-12 bg-white/5 rounded-full blur-xl group-hover:scale-[3] transition-transform duration-1000"></div>
+      <p className="text-[10px] font-display font-black text-slate-500 uppercase tracking-widest leading-none pt-0.5">{label}</p>
+      <p className={`text-4xl font-display font-black ${color} tracking-tighter mt-4 leading-none`}>
+        {value}
+      </p>
+    </div>
+  )
+}
+
 export default function DashboardPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-xl text-gray-600 dark:text-gray-400">Завантаження...</div>
+      <div className="fixed inset-0 flex flex-col items-center justify-center bg-slate-950">
+        <div className="w-24 h-24 rounded-full border-t-2 border-cyan-500 animate-spin mb-8"></div>
+        <p className="font-display font-black text-white uppercase tracking-[0.5em] animate-pulse">Initializing System...</p>
       </div>
     }>
       <DashboardContent />

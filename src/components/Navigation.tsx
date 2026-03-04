@@ -33,53 +33,66 @@ export default function Navigation({ user }: NavigationProps) {
 
   return (
     <>
-      <nav className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-sm border-b border-slate-200/50 dark:border-slate-800/50 sticky top-0 z-40 transition-colors duration-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-8">
+      <nav className="glass sticky top-5 z-50 mx-4 md:mx-auto max-w-7xl rounded-[2rem] border border-white/20 dark:border-white/5 shadow-glass-dark transition-all duration-500 mt-4 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-transparent to-blue-500/5 pointer-events-none"></div>
+        <div className="max-w-7xl mx-auto px-6 sm:px-8">
+          <div className="flex justify-between items-center h-20">
+            <div className="flex items-center gap-10">
               <button
                 onClick={() => router.push('/dashboard')}
-                className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 flex items-center gap-2"
+                className="group flex items-center gap-3 transition-transform active:scale-95"
               >
-                <span>🚚</span>
-                <span className="tracking-tight">Логістика v2</span>
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-400 to-blue-600 shadow-glow flex items-center justify-center text-2xl group-hover:rotate-12 transition-transform duration-500">
+                  🚚
+                </div>
+                <div className="flex flex-col items-start leading-none">
+                  <span className="text-xl font-display font-black text-slate-900 dark:text-white tracking-tighter">
+                    Логістика
+                  </span>
+                  <span className="text-[10px] font-display font-black uppercase tracking-[0.3em] text-cyan-500/80">
+                    System v2.0
+                  </span>
+                </div>
               </button>
-              
-              <div className="hidden md:flex gap-1 ml-4">
+
+              <div className="hidden lg:flex gap-2 ml-4">
                 {navItems.map((item) => (
                   <button
                     key={item.href}
                     onClick={() => router.push(item.href)}
-                    className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                      isActive(item.href)
-                        ? 'bg-slate-100 dark:bg-slate-800 text-blue-600 dark:text-blue-400 shadow-sm'
-                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
-                    }`}
+                    className={`px-5 py-2.5 rounded-2xl text-[11px] font-display font-black uppercase tracking-widest transition-all duration-500 group relative ${isActive(item.href)
+                        ? 'text-cyan-500 dark:text-cyan-400'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                      }`}
                   >
-                    {item.label}
+                    <span className="relative z-10">{item.label}</span>
+                    {isActive(item.href) && (
+                      <div className="absolute inset-0 bg-cyan-500/10 dark:bg-cyan-500/5 rounded-2xl border border-cyan-500/20 blur-[2px] animate-pulse-glow"></div>
+                    )}
                   </button>
                 ))}
               </div>
             </div>
 
-            <div className="hidden md:flex items-center gap-3">
+            <div className="hidden lg:flex items-center gap-4">
+              <div className="h-8 w-[1px] bg-slate-200 dark:bg-white/10 mx-2"></div>
               <WidgetSystem />
-              <button
+              <Button
                 onClick={() => router.push('/trips/new')}
-                className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-xl text-sm font-semibold shadow-md hover:shadow-glow-green transition-all duration-300 active:scale-95 flex items-center gap-2"
+                className="!px-6 !py-3 !text-[10px] !bg-cyan-500 hover:!bg-cyan-400 shadow-glow"
               >
-                <span>➕</span> Новий рейс
-              </button>
+                ➕ Новий рейс
+              </Button>
               <button
                 onClick={toggleTheme}
-                className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-300"
+                className="p-3.5 rounded-2xl glass hover:bg-slate-100 dark:hover:bg-white/10 text-slate-600 dark:text-slate-300 transition-all duration-500 hover:shadow-glow hover:border-cyan-500/30 active:scale-90"
                 aria-label="Перемкнути тему"
               >
                 {theme === 'light' ? '🌙' : '☀️'}
               </button>
               <button
                 onClick={() => setLogoutModalOpen(true)}
-                className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-red-500 dark:hover:border-red-500 hover:text-red-500 dark:hover:text-red-400 text-slate-700 dark:text-slate-200 rounded-xl text-sm font-semibold transition-all duration-300"
+                className="px-5 py-3 text-[10px] font-display font-black uppercase tracking-widest text-rose-500 hover:text-white hover:bg-rose-500 rounded-2xl border border-rose-500/20 transition-all duration-500 active:scale-95"
               >
                 Вийти
               </button>
@@ -88,11 +101,11 @@ export default function Navigation({ user }: NavigationProps) {
             {/* Animated Burger Menu */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 -mr-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none transition-colors"
+              className="lg:hidden p-3 rounded-2xl glass text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors"
               aria-label="Меню"
             >
               <div className="w-6 h-5 relative flex flex-col justify-between items-center z-50">
-                <span className={`w-full h-0.5 bg-current rounded transition-all duration-300 ease-in-out ${mobileMenuOpen ? 'rotate-45 translate-y-2.5' : ''}`} />
+                <span className={`w-full h-0.5 bg-current rounded transition-all duration-300 ease-in-out ${mobileMenuOpen ? 'rotate-45 translate-y-2' : ''}`} />
                 <span className={`w-full h-0.5 bg-current rounded transition-all duration-300 ease-in-out ${mobileMenuOpen ? 'opacity-0 scale-x-0' : 'opacity-100 scale-x-100'}`} />
                 <span className={`w-full h-0.5 bg-current rounded transition-all duration-300 ease-in-out ${mobileMenuOpen ? '-rotate-45 -translate-y-2' : ''}`} />
               </div>
@@ -102,56 +115,62 @@ export default function Navigation({ user }: NavigationProps) {
 
         {/* Mobile Menu Dropdown */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-slate-200/50 dark:border-slate-800/50 absolute w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-lg rounded-b-2xl animate-slide-down">
-            <div className="px-4 py-4 space-y-3">
+          <div className="lg:hidden border-t border-slate-200/50 dark:border-white/5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl animate-fade-in">
+            <div className="px-6 py-8 space-y-4">
               {user && (
-                <div className="text-sm font-medium text-slate-500 dark:text-slate-400 px-3 pb-3 border-b border-slate-200 dark:border-slate-800">
-                  {user.name}
+                <div className="px-4 py-3 glass rounded-2xl flex items-center justify-between">
+                  <span className="text-[10px] font-display font-black uppercase tracking-widest text-slate-400">
+                    Акаунт
+                  </span>
+                  <span className="text-[12px] font-display font-black text-slate-900 dark:text-white">
+                    {user.name}
+                  </span>
                 </div>
               )}
-              {navItems.map((item) => (
-                <button
-                  key={item.href}
-                  onClick={() => {
-                    router.push(item.href);
-                    setMobileMenuOpen(false);
-                  }}
-                  className={`w-full text-left px-4 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                    isActive(item.href)
-                      ? 'bg-blue-50 dark:bg-slate-800 text-blue-600 dark:text-blue-400'
-                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
+              <div className="grid grid-cols-1 gap-3">
+                {navItems.map((item) => (
+                  <button
+                    key={item.href}
+                    onClick={() => {
+                      router.push(item.href);
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`w-full text-left px-5 py-4 rounded-2xl font-display font-black uppercase tracking-widest transition-all duration-300 ${isActive(item.href)
+                        ? 'bg-cyan-500/10 text-cyan-500 border border-cyan-500/20'
+                        : 'text-slate-700 dark:text-slate-300 glass hover:bg-slate-50 dark:hover:bg-white/5'
+                      }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
               <div className="pt-2">
                 <WidgetSystem />
               </div>
-              <button
+              <Button
                 onClick={() => {
                   router.push('/trips/new');
                   setMobileMenuOpen(false);
                 }}
-                className="w-full text-left px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold transition-colors mt-2 shadow-md flex items-center gap-2"
+                className="w-full !py-5 !bg-cyan-600 shadow-glow"
               >
-                <span>➕</span> Новий рейс
-              </button>
-              <div className="grid grid-cols-2 gap-3 pt-2">
+                ➕ Новий рейс
+              </Button>
+              <div className="grid grid-cols-2 gap-4">
                 <button
                   onClick={toggleTheme}
-                  className="w-full px-4 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl font-semibold transition-colors flex justify-center items-center"
+                  className="px-4 py-4 glass text-[10px] font-display font-black uppercase tracking-widest text-slate-700 dark:text-slate-300 rounded-2xl transition-colors flex justify-center items-center"
                 >
-                  {theme === 'light' ? '🌙 Темна тема' : '☀️ Світла тема'}
+                  {theme === 'light' ? '🌙 Dark' : '☀️ Light'}
                 </button>
                 <button
                   onClick={() => {
                     setLogoutModalOpen(true);
                     setMobileMenuOpen(false);
                   }}
-                  className="w-full px-4 py-3 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 rounded-xl font-semibold transition-colors hover:bg-red-100 dark:hover:bg-red-500/20 flex justify-center items-center"
+                  className="px-4 py-4 glass text-[10px] font-display font-black uppercase tracking-widest text-rose-500 rounded-2xl transition-colors flex justify-center items-center"
                 >
-                  Вийти
+                  Logout
                 </button>
               </div>
             </div>
@@ -165,25 +184,26 @@ export default function Navigation({ user }: NavigationProps) {
         title="Підтвердження виходу"
         size="sm"
       >
-        <div className="space-y-6 p-2">
-          <p className="text-slate-600 dark:text-slate-400 font-medium">
-            Ви впевнені, що хочете вийти з облікового запису?
+        <div className="space-y-8 p-4 text-center">
+          <div className="w-20 h-20 bg-rose-500/10 rounded-full flex items-center justify-center text-3xl mx-auto mb-4 animate-float">
+            👋
+          </div>
+          <p className="text-slate-600 dark:text-slate-400 font-display font-bold text-lg leading-relaxed">
+            Ви впевнені, що хочете покинути систему?
           </p>
-          <div className="flex gap-4">
+          <div className="flex flex-col gap-3">
             <Button
-              variant="secondary"
+              onClick={handleLogout}
+              className="!w-full !py-5 !bg-rose-500 hover:!bg-rose-600 shadow-glow"
+            >
+              Так, вийти
+            </Button>
+            <button
               onClick={() => setLogoutModalOpen(false)}
-              className="flex-1 !rounded-2xl"
+              className="w-full py-4 text-[10px] font-display font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
             >
               Скасувати
-            </Button>
-            <Button
-              variant="danger"
-              onClick={handleLogout}
-              className="flex-1 !rounded-2xl !bg-rose-500 hover:!bg-rose-600 shadow-glow-rose"
-            >
-              Вийти
-            </Button>
+            </button>
           </div>
         </div>
       </Modal>

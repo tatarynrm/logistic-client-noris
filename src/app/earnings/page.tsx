@@ -16,15 +16,15 @@ const ITEMS_PER_PAGE = 20;
 function EarningsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [trips, setTrips] = useState<Trip[]>([]);
   const [user, setUser] = useState<any>(null);
-  const [summary, setSummary] = useState({ 
-    totalMargin: 0, 
+  const [summary, setSummary] = useState({
+    totalMargin: 0,
     totalPayment: 0,
-    tripCount: 0 
+    tripCount: 0
   });
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
@@ -38,7 +38,7 @@ function EarningsContent() {
     const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
     const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     lastDay.setHours(23, 59, 59, 999);
-    
+
     setStartDate(firstDay.toISOString().split('T')[0]);
     setEndDate(lastDay.toISOString().split('T')[0]);
   }, []);
@@ -71,7 +71,7 @@ function EarningsContent() {
     const params = new URLSearchParams();
     if (searchQuery) params.set('search', searchQuery);
     if (currentPage > 1) params.set('page', currentPage.toString());
-    
+
     const newURL = params.toString() ? `?${params.toString()}` : '/earnings';
     window.history.replaceState({}, '', newURL);
   };
@@ -97,7 +97,7 @@ function EarningsContent() {
     const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
     const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
     lastDay.setHours(23, 59, 59, 999);
-    
+
     setStartDate(firstDay.toISOString().split('T')[0]);
     setEndDate(lastDay.toISOString().split('T')[0]);
   };
@@ -107,7 +107,7 @@ function EarningsContent() {
     const firstDay = new Date(now.getFullYear(), 0, 1);
     const lastDay = new Date(now.getFullYear(), 11, 31);
     lastDay.setHours(23, 59, 59, 999);
-    
+
     setStartDate(firstDay.toISOString().split('T')[0]);
     setEndDate(lastDay.toISOString().split('T')[0]);
   };
@@ -117,7 +117,7 @@ function EarningsContent() {
     const firstDay = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const lastDay = new Date(now.getFullYear(), now.getMonth(), 0);
     lastDay.setHours(23, 59, 59, 999);
-    
+
     setStartDate(firstDay.toISOString().split('T')[0]);
     setEndDate(lastDay.toISOString().split('T')[0]);
   };
@@ -139,12 +139,12 @@ function EarningsContent() {
     const lowerQuery = query.toLowerCase();
     const loadPoints = (trip.load_points as unknown as LocationPoint[]) || [];
     const unloadPoints = (trip.unload_points as unknown as LocationPoint[]) || [];
-    
-    const locationMatch = [...loadPoints, ...unloadPoints].some(point => 
+
+    const locationMatch = [...loadPoints, ...unloadPoints].some(point =>
       point.displayName.toLowerCase().includes(lowerQuery) ||
       point.name.toLowerCase().includes(lowerQuery)
     );
-    
+
     return (
       locationMatch ||
       trip.driver_name.toLowerCase().includes(lowerQuery) ||
@@ -186,22 +186,22 @@ function EarningsContent() {
           <h2 className="text-2xl font-black mb-6 text-slate-900 dark:text-white tracking-tight flex items-center gap-3">
             <span className="p-2 bg-blue-500/10 rounded-xl text-blue-500">📅</span> Оберіть період
           </h2>
-          
+
           <div className="flex flex-wrap gap-3 mb-8">
-            <button 
-              onClick={setCurrentMonth} 
+            <button
+              onClick={setCurrentMonth}
               className="px-6 py-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 hover:border-blue-500 hover:text-blue-500 transition-all shadow-sm"
             >
               Поточний місяць
             </button>
-            <button 
-              onClick={setLastMonth} 
+            <button
+              onClick={setLastMonth}
               className="px-6 py-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 hover:border-blue-500 hover:text-blue-500 transition-all shadow-sm"
             >
               Минулий місяць
             </button>
-            <button 
-              onClick={setCurrentYear} 
+            <button
+              onClick={setCurrentYear}
               className="px-6 py-3 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 hover:border-blue-500 hover:text-blue-500 transition-all shadow-sm"
             >
               Поточний рік
@@ -232,7 +232,7 @@ function EarningsContent() {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           {loading ? (
-             Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-32 rounded-[2.5rem]" />)
+            Array(3).fill(0).map((_, i) => <Skeleton key={i} className="h-32 rounded-[2.5rem]" />)
           ) : (
             <>
               <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-sm border border-slate-200/60 dark:border-slate-800/60 p-8 transition-all hover:shadow-xl hover:-translate-y-1">
@@ -265,7 +265,7 @@ function EarningsContent() {
         {loading ? (
           <Skeleton className="h-[600px] rounded-[2.5rem]" />
         ) : filteredTrips.length === 0 ? (
-          <EmptyState 
+          <EmptyState
             title={searchQuery ? "Нічого не знайдено" : "Звіт порожній"}
             description={searchQuery ? "Перевірте параметри пошуку." : "За обраний період рейсів не знайдено. Спробуйте змінити дати."}
             icon="📊"
@@ -302,9 +302,9 @@ function EarningsContent() {
                     const loadPoints = (trip.load_points as unknown as LocationPoint[]) || [];
                     const unloadPoints = (trip.unload_points as unknown as LocationPoint[]) || [];
                     const routeDisplay = loadPoints.length === 1 && unloadPoints.length === 1
-                      ? `${loadPoints[0].name} → ${unloadPoints[0].name}`
+                      ? `${loadPoints[0].displayName} → ${unloadPoints[0].displayName}`
                       : `${loadPoints.length} точок → ${unloadPoints.length} точок`;
-                    
+
                     return (
                       <tr key={trip.id} className="hover:bg-blue-50/30 dark:hover:bg-blue-900/10 transition-colors group">
                         <td className="px-8 py-6 text-sm text-slate-600 dark:text-slate-400 whitespace-nowrap font-bold">
@@ -353,11 +353,10 @@ function EarningsContent() {
                     <button
                       key={page}
                       onClick={() => setCurrentPage(page)}
-                      className={`w-12 h-12 rounded-2xl font-black text-xs transition-all ${
-                        currentPage === page
+                      className={`w-12 h-12 rounded-2xl font-black text-xs transition-all ${currentPage === page
                           ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-xl scale-110'
                           : 'bg-white dark:bg-slate-800 text-slate-500 border border-slate-100 dark:border-slate-700'
-                      }`}
+                        }`}
                     >
                       {page}
                     </button>
